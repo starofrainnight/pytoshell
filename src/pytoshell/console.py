@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 import argparse
@@ -8,9 +9,11 @@ import os.path
 import ast
 import io
 import logging
+from .shgenerator import ShGenerator
+from .batgenerator import BatGenerator
 
 class Application(object):
-    def __init__(self):
+    def __init__(self, argv):
         description='''Wrote in python, compile to shell scripts (unix sh, windows batch)'''
 
         parser = argparse.ArgumentParser(description=description)
@@ -20,7 +23,7 @@ class Application(object):
         parser.add_argument("-o", "--output", help="Output file path")
         parser.add_argument("file_path", help="Input file path")
 
-        self.__args = parser.parse_args()
+        self.__args = parser.parse_args(argv)
 
         # If user does not specific output path, we default it to input file
         # path
@@ -28,29 +31,27 @@ class Application(object):
             self.__args.output ="%s.%s" %(
                 os.path.splitext(self.__args.file_path)[0], self.__args.type)
 
+
         self._logger = logging.getLogger(__name__)
 
-    def _sh_generate(self, node):
-        return ""
-
-    def _bat_generate(self, node):
-        return ""
-
     def exec_(self):
-        generators = {"sh":self._sh_generate, "bat":self._bat_generate}
+        generators = {
+            "sh":ShGenerator(),
+            "bat":BatGenerator(),
+            }
         agenerator = generators[self.__args.type]
         with io.open(self.__args.file_path) as source_file:
-            script_content = agenerator(ast.parse(source_file.read()))
+            script_content = agenerator.generate(ast.parse(source_file.read()))
 
         with io.open(self.__args.output, "w") as script_file:
             script_file.write(script_content)
 
         return 0
 
-def main():
-    a = Application()
+def main(argv):
+    a = Application(argv)
     sys.exit(a.exec_())
 
 if __name__ == "__main__":
     # Execute only if run as a script
-    main()
+    main(sys.argv[1:])
