@@ -9,8 +9,8 @@ import os.path
 import ast
 import io
 import logging
-from .shgenerator import ShGenerator
-from .batgenerator import BatGenerator
+from .translator.batch import Translator as BatchTranslator
+from .translator.sh import Translator as ShTranslator
 
 class Application(object):
     def __init__(self, argv):
@@ -35,13 +35,13 @@ class Application(object):
         self._logger = logging.getLogger(__name__)
 
     def exec_(self):
-        generators = {
-            "sh":ShGenerator(),
-            "bat":BatGenerator(),
+        translators = {
+            "sh":BatchTranslator(),
+            "bat":ShTranslator(),
             }
-        agenerator = generators[self.__args.type]
+        translator = translators[self.__args.type]
         with io.open(self.__args.file_path) as source_file:
-            script_content = agenerator.generate(ast.parse(source_file.read()))
+            script_content = translator.translate(ast.parse(source_file.read()))
 
         with io.open(self.__args.output, "w") as script_file:
             script_file.write(script_content)
