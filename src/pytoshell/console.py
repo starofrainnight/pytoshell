@@ -31,13 +31,12 @@ class Application(object):
             self.__args.output ="%s.%s" %(
                 os.path.splitext(self.__args.file_path)[0], self.__args.type)
 
-
         self._logger = logging.getLogger(__name__)
 
     def exec_(self):
         translators = {
-            "sh":BatchTranslator(),
-            "bat":ShTranslator(),
+            "sh":ShTranslator(),
+            "bat":BatchTranslator(),
             }
         translator = translators[self.__args.type]
         with io.open(self.__args.file_path) as source_file:
