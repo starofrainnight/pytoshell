@@ -98,7 +98,7 @@ class Translator(base.Translator):
         sub_source, variant_name = self._parse_value(value)
 
         source.front += sub_source.front
-        source.append(self._parse_env(name, variant_name, do_math=True))
+        source.append(self._parse_env(name, variant_name))
         source.front += sub_source.back
 
         return source
