@@ -157,7 +157,7 @@ class Translator(base.Translator):
         prev_sibling = None
         next_sibling = None
 
-        node.__dict__["_children"] = weakref.ref(node.body)
+        node.__dict__["_children"] = node.body
 
         for i in range(len(node.body)):
             member = node.body[i]
@@ -176,10 +176,17 @@ class Translator(base.Translator):
             prev_sibling = weakref.ref(member)
 
     def translate(self, node):
+        # Initialize custom members for root node of ast tree
+        node.__dict__["_parent"] = None
+        node.__dict__["_prev_sibling"] = None
+        node.__dict__["_next_sibling"] = None
+        node.__dict__["_children"] = []
         self._mark_ast_tree(node)
+
         print(ast.dump(node))
 
         self._stack.push({})
+
         source = self._parse_node(node)
         lines = []
         lines += source.front
