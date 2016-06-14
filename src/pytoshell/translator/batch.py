@@ -76,11 +76,13 @@ class Translator(base.Translator):
         variant_name = self._get_temp_variant_name()
 
         if type(value) == ast.Num:
-            # Use value directly
-            variant_name = value.n
+            source.append(self._parse_env(
+                variant_name,
+                value.n))
         elif type(value) == ast.Str:
-            # Use value directly
-            variant_name = value.s
+            source.append(self._parse_env(
+                variant_name,
+                value.s))
         elif type(value) == ast.Call:
             text, result_variant_name = self._gen_call(value)
             source.front.append(text)
@@ -119,7 +121,7 @@ class Translator(base.Translator):
         sub_source, variant_name = self._parse_value(value)
 
         source.front += sub_source.front
-        source.append(self._parse_env(name, variant_name))
+        source.append(self._parse_env(name, "%%%s%%" % variant_name))
         source.front += sub_source.back
 
         return source
@@ -180,5 +182,7 @@ class Translator(base.Translator):
         lines += source.front
         lines += source.back
         lines.append("EXIT /B %ERRORLEVEL%")
+
+        print(lines)
 
         return "\n".join(lines)
