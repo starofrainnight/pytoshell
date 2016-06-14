@@ -1,6 +1,7 @@
 import ast
 import six
 import os.path
+import weakref
 from . import base
 from .. import _get_data_path
 
@@ -132,7 +133,30 @@ class Translator(base.Translator):
 
         return source
 
+    def _mark_ast_tree(self, node):
+        if 'body' not in node.__dict__:
+            return
+
+        prev_sibling = None
+        next_sibling = None
+
+        for i in range(len(node.body)):
+            member = node.body[i]
+            if i < (len(node.body) - 1):
+                next_sibling = weakref.ref(node.body[i+1])
+            else:
+                next_sibling = None
+
+            if isinstance(member, ast.AST):
+                member.__dict__["_parent"] = weakref.ref(node)
+                member.__dict__["_prev_sibling"] = prev_sibling
+                member.__dict__["_next_sibling"] = next_sibling
+                self._mark_ast_tree(member)
+
+            prev_sibling = weakref.ref(member)
+
     def translate(self, node):
+        self._mark_ast_tree(node)
         print(ast.dump(node))
 
         self._stack.push({})
