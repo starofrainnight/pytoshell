@@ -34,13 +34,13 @@ class Translator(base.Translator):
         self._object_id += 1
         return self._object_id
 
-    def _get_object_name(self, node):
+    def _get_variant_name(self, node):
         if node.id not in self._stack.top:
             self._stack.top[node.id] = self._new_object_id()
 
         return "__PTSO%s" % self._stack.top[node.id]
 
-    def _get_temp_object_name(self):
+    def _get_temp_variant_name(self):
         return "__PTSTMPO%s" % self._new_object_id()
 
     def _gen_set_env(self, name, value="", do_math=False):
@@ -53,14 +53,14 @@ class Translator(base.Translator):
     def _parse_env(self, name, value="", do_math=False):
         source = Source()
         if not isinstance(name, six.string_types):
-            name = self._get_object_name(name)
+            name = self._get_variant_name(name)
         source.front.append(self._gen_set_env(name, value, do_math=do_math))
         source.back.insert(0, self._gen_set_env(name))
         return source
 
     def _parse_value(self, value):
         source = Source()
-        variant_name = self._get_temp_object_name()
+        variant_name = self._get_temp_variant_name()
 
         if type(value) == ast.Num:
             # Use value directly
