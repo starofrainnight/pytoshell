@@ -1,4 +1,5 @@
 import ast
+import six
 import os.path
 from . import base
 from .. import _get_data_path
@@ -50,7 +51,7 @@ class Translator(base.Translator):
 
     def _parse_env(self, name, value="", do_math=False):
         source = Source()
-        if not isinstance(name, str):
+        if not isinstance(name, six.string_types):
             name = self._get_object_name(name)
         source.front.append(self._gen_set_env(name, value, do_math=do_math))
         source.back.insert(0, self._gen_set_env(name))
