@@ -43,6 +43,19 @@ class Translator(base.Translator):
     def _get_temp_variant_name(self):
         return "__PTSTMPO%s" % self._new_object_id()
 
+    def _gen_call(self, node):
+        if not isinstance(node, ast.Call):
+            raise TypeError("node must be type of ast.Call!")
+
+        result = ""
+        return_variant_name = self._get_temp_variant_name()
+        function_name = node.func.id.replace(".", "_")
+        result += function_name
+        result += " %s " % return_variant_name
+        for argument in node.args:
+            result += " \"%%%s%%\" " % self._get_variant_name(argument)
+        return result, return_variant_name
+
     def _gen_set_env(self, name, value="", do_math=False):
         opt = ""
         if do_math:
@@ -69,7 +82,9 @@ class Translator(base.Translator):
             # Use value directly
             variant_name = value.s
         elif type(value) == ast.Call:
-            print("Not implemented call value!")
+            text, result_variant_name = self._gen_call(value)
+            source.front.append(text)
+            source.append(self._parse_env(result_variant_name))
         elif type(value) == ast.BinOp:
             left_source, left_variant = self._parse_value(value.left)
             right_source, right_variant = self._parse_value(value.right)
