@@ -165,6 +165,4 @@ class Translator(base.Translator):
         lines += source.front
         lines += source.back
 
-        print(lines)
-
         return "\n".join(lines)
