@@ -157,6 +157,8 @@ class Translator(base.Translator):
         prev_sibling = None
         next_sibling = None
 
+        node.__dict__["_children"] = weakref.ref(node.body)
+
         for i in range(len(node.body)):
             member = node.body[i]
             if i < (len(node.body) - 1):
@@ -168,6 +170,7 @@ class Translator(base.Translator):
                 member.__dict__["_parent"] = weakref.ref(node)
                 member.__dict__["_prev_sibling"] = prev_sibling
                 member.__dict__["_next_sibling"] = next_sibling
+                member.__dict__["_children"] = []
                 self._mark_ast_tree(member)
 
             prev_sibling = weakref.ref(member)
