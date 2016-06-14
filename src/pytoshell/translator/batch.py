@@ -22,7 +22,7 @@ class Stack(list):
 
 class Translator(base.Translator):
     file_extensions = ['bat']
-    module_dir = os.path.splitext(os.path.basename(__file__))[0]
+    _module_dir = os.path.splitext(os.path.basename(__file__))[0]
 
     def __init__(self):
         self._stack = Stack()

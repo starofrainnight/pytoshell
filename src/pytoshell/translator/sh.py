@@ -5,7 +5,7 @@ from .. import _get_data_path
 
 class Translator(base.Translator):
     file_extensions = ['sh']
-    module_dir = os.path.splitext(os.path.basename(__file__))[0]
+    _module_dir = os.path.splitext(os.path.basename(__file__))[0]
 
     def generic_visit(self, node):
         ast.NodeVisitor.generic_visit(self, node)
