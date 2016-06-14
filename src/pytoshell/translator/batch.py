@@ -164,5 +164,6 @@ class Translator(base.Translator):
         lines = []
         lines += source.front
         lines += source.back
+        lines.append("EXIT /B %ERRORLEVEL%")
 
         return "\n".join(lines)
