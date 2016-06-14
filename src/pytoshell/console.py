@@ -34,11 +34,15 @@ class Application(object):
         self._logger = logging.getLogger(__name__)
 
     def exec_(self):
-        translators = {
-            "sh":ShTranslator(),
-            "bat":BatchTranslator(),
-            }
+        # Register translators
+        translator_classes = [ShTranslator, BatchTranslator]
+        translators = {}
+        for aclass in translator_classes:
+            for aext in aclass.file_extensions:
+                translators[aext] = aclass()
+
         translator = translators[self.__args.type]
+        
         with io.open(self.__args.file_path) as source_file:
             script_content = translator.translate(ast.parse(source_file.read()))
 

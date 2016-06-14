@@ -1,4 +1,5 @@
 import ast
+import os.path
 from . import base
 from .. import _get_data_path
 
@@ -20,6 +21,9 @@ class Stack(list):
         return self[len(self) - 1]
 
 class Translator(base.Translator):
+    file_extensions = ['bat']
+    module_dir = os.path.splitext(os.path.basename(__file__))[0]
+
     def __init__(self):
         self._stack = Stack()
         self._object_id = 0
