@@ -21,6 +21,10 @@ class Application(object):
             help="Generate to which type of shellscript (sh, bat)",
             required=True)
         parser.add_argument("-o", "--output", help="Output file path")
+        parser.add_argument("-b", "--bootstrap",
+                            help="Bootstrap mode, don't import __init__ module",
+                            type=bool,
+                            default=False)
         parser.add_argument("file_path", help="Input file path")
 
         self.__args = parser.parse_args(argv)
@@ -42,7 +46,7 @@ class Application(object):
                 translators[aext] = aclass()
 
         translator = translators[self.__args.type]
-        
+
         with io.open(self.__args.file_path) as source_file:
             script_content = translator.translate(ast.parse(source_file.read()))
 
