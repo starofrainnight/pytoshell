@@ -63,3 +63,10 @@ Return
 Return value not using the ERRORLEVEL, use variant @PYTSR
 
 You should backup the value immediately after called if you want to use it, it might changed during each call.
+
+Internal Functions
+---------------------
+
+eval
+`````````````````````
+Emulated by inserting codes into a batch script then call it.
