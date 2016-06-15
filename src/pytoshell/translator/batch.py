@@ -22,6 +22,13 @@ class Stack(list):
     def top(self):
         return self[len(self) - 1]
 
+    def __enter__(self):
+        self.push({})
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.pop()
+
 class Translator(base.Translator):
     file_extensions = ['bat']
     _module_dir = os.path.splitext(os.path.basename(__file__))[0]
@@ -142,11 +149,10 @@ class Translator(base.Translator):
                     source.append(sub_source)
 
         if "body" in node.__dict__:
-            self._stack.push({})
-            for sub_node in node.body:
-                sub_source = self._parse_node(sub_node)
-                source.append(sub_source)
-            self._stack.pop()
+            with self._stack:
+                for sub_node in node.body:
+                    sub_source = self._parse_node(sub_node)
+                    source.append(sub_source)
 
         return source
 
@@ -185,13 +191,12 @@ class Translator(base.Translator):
 
         print(ast.dump(node))
 
-        self._stack.push({})
-
-        source = self._parse_node(node)
-        lines = []
-        lines += source.front
-        lines += source.back
-        lines.append("EXIT /B %ERRORLEVEL%")
+        with self._stack:
+            source = self._parse_node(node)
+            lines = []
+            lines += source.front
+            lines += source.back
+            lines.append("EXIT /B %ERRORLEVEL%")
 
         print(lines)
 
