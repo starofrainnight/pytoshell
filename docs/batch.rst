@@ -39,11 +39,8 @@ Only support basic types:
  * function
  * method
 
-Functions
-=====================
-
 Module
----------------------
+=====================
 
 1. Module don't have directory layout, so the file name just the module name
 
@@ -53,7 +50,10 @@ Module
 
  All stuffs in __init__.bat will be importted automatically without import code
 
-3. All manually wrote funcitons should prefixed with full module name
+Functions
+=====================
+
+All manually wrote funcitons should prefixed with full module name
 
  os_path_join() if you using join() in os.path module
 
