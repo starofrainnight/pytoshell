@@ -11,11 +11,7 @@ Variants are emulated by environment variants
 Prefixs
 ---------------------
 
-* @PYTSR, Return variants
-
- - @PYTSRC, Return variants Count
- - @PYTSRV(Number), Return value variant, number range 0..X (X unlimitted)
-
+* @PYTSR, Return variant
 * @PYTSV, Normal Variants
 
 Name
@@ -64,12 +60,6 @@ Module
 Return
 ---------------------
 
-Return value not using the ERRORLEVEL
+Return value not using the ERRORLEVEL, use variant @PYTSR
 
-They will return multiply varaints defined by @PYTSRC and @PYTSRV(Number).
-
-::
-
- @PYTSRV0, @PYTSRV1, ... @PYTSRVX
-
-You should backup these values immediately after called if you want to use them, they might changed during each call.
+You should backup the value immediately after called if you want to use it, it might changed during each call.
