@@ -9,6 +9,7 @@ class Source(object):
     def __init__(self):
         self.front = []
         self.back = []
+        self.ret = None
 
     def append(self, other_source):
         self.front += other_source.front
@@ -95,8 +96,8 @@ class Translator(base.Translator):
             source.front.append(text)
             source.append(self._parse_env(result_variant_name))
         elif type(value) == ast.BinOp:
-            left_source, left_variant = self._parse_value(value.left)
-            right_source, right_variant = self._parse_value(value.right)
+            left_source = self._parse_value(value.left)
+            right_source = self._parse_value(value.right)
 
             operators = {
                 ast.Add:"+",
@@ -117,18 +118,19 @@ class Translator(base.Translator):
             source.append(right_source)
             source.append(self._parse_env(
                 variant_name,
-                "%s%s%s" % (left_variant, opt, right_variant),
+                "%s%s%s" % (left_source.ret, opt, right_source.ret),
                 do_math=True))
 
-        return source, variant_name
+        source.ret = variant_name
+        return source
 
     def _parse_assign(self, name, value):
         source = Source()
 
-        sub_source, variant_name = self._parse_value(value)
+        sub_source = self._parse_value(value)
 
         source.front += sub_source.front
-        source.append(self._parse_env(name, "%%%s%%" % variant_name))
+        source.append(self._parse_env(name, "%%%s%%" % sub_source.ret))
         source.front += sub_source.back
 
         return source
