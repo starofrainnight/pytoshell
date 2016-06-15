@@ -43,10 +43,15 @@ class Translator(base.Translator):
         return self._object_id
 
     def _get_variant_name(self, node):
-        if node.id not in self._stack.top:
-            self._stack.top[node.id] = self._new_object_id()
+        node_id = ""
+        if isinstance(node, six.string_types):
+            node_id = node
+        else:
+            node_id = node.id
+        if node_id not in self._stack.top:
+            self._stack.top[node_id] = self._new_object_id()
 
-        return "__PTSO%s" % self._stack.top[node.id]
+        return "__PTSO%s" % self._stack.top[node_id]
 
     def _get_temp_variant_name(self):
         return "__PTSTMPO%s" % self._new_object_id()
