@@ -30,7 +30,7 @@ Value will be converted to a normal temp environment value before using.
 
 Type
 ---------------------
-Only support base types: NoneType, int, str, dict, list, tuple, function, method
+Only support base types: NoneType, bool, int, str, dict, list, tuple, function, method
 
 Functions
 =====================
