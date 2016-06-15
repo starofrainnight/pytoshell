@@ -6,7 +6,15 @@ Variants
 
 Principle
 ---------------------
-Variants are emulated by environment variants
+Variants are emulated by environment variants.
+
+Because window's environment variant only support case insensitive name, so we have to do a little trick to the name.
+
+If there have any upper case character, we append character '#' before it:
+
+::
+
+ Os.Path.Join ==> set "@PYTSV#OS_#PATH_#JOIN=(function)@Os_Path_Join"
 
 Prefixs
 ---------------------
@@ -28,16 +36,16 @@ Type
 ---------------------
 Only support basic types:
 
- * NoneType
- * bool
- * int
- * str
- * float
- * dict
- * list
- * tuple
- * function
- * method
+* NoneType
+* bool
+* int
+* str
+* float
+* dict
+* list
+* tuple
+* function
+* method
 
 Module
 =====================
@@ -55,7 +63,15 @@ Functions
 
 All manually wrote funcitons should prefixed with full module name
 
+::
+
  os_path_join() if you using join() in os.path module
+
+All Functions are late binded, so they calling a function or a method, they actually calling a environment variant and requiring it's value for the real function name.
+
+::
+
+ set os_path_join
 
 Return
 ---------------------
