@@ -55,9 +55,9 @@ Module
 
  For example : module **pytoshell.base** will contained in "pytoshell_base.bat", all dots in module name will be converted to underscore then append ".bat".
 
-2. __init__.bat is a special module that contains all internal functions
+2. site.bat is a special module that contains all internal functions
 
- All stuffs in __init__.bat will be importted automatically without import code
+ All stuffs in site.bat will be importted automatically without import code
 
 Functions
 =====================
