@@ -23,6 +23,19 @@ class Source(object):
         self.back = []
         self.ret = None
 
+    def get_ret_varaint(self):
+        return "@PYTSR"
+
+    def get_variant(self, name):
+        chars = []
+        for c in name:
+            if c.isupper():
+                chars.append("#")
+                c = c.upper()
+            chars.append(c)
+
+        return "@PYTSV%s" % "".join(chars)
+
     def append(self, other_source):
         self.front += other_source.front
         self.back = other_source.back + self.back
