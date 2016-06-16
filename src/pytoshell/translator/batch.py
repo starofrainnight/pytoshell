@@ -86,7 +86,7 @@ class Source(object):
 
         name = self.get_variant(name)
 
-        return 'set %s "%s=%s"' % (opt, name, value)
+        return 'SET %s "%s=%s"' % (opt, name, value)
 
     def gen_set_env_object(self, name, value="", do_math=False):
         value = "%s@%s" % (type(value).__name__, value)
@@ -143,9 +143,9 @@ class Translator(base.Translator):
             arguments += " \"%%%s%%\" " % source.get_variant(argument.id)
 
         source.add_initialize("IF \"%%%s%%\"==\"\" (" % function_name)
-        source.add_initialize("\tcall %s %s" % (batch_function_name, arguments))
+        source.add_initialize("\tCALL %s %s" % (batch_function_name, arguments))
         source.add_initialize(") ELSE (")
-        source.add_initialize("\tcall %%%s%% %s" % (function_name, arguments))
+        source.add_initialize("\tCALL %%%s%% %s" % (function_name, arguments))
         source.add_initialize(")")
         return source
 
