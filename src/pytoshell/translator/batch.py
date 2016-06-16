@@ -42,6 +42,19 @@ class Source(object):
     def add_finalize(self, line):
         self.back.append(line)
 
+    def set_env(self, name, value="", do_math=False):
+        if not isinstance(name, six.string_types):
+            raise TypeError("name must be string type!")
+
+        opt = ""
+        if do_math:
+            opt = "/a"
+
+        self.front.append('set %s "%s=%s"' % (opt, name, value))
+
+    def del_env(self, name):
+        self.set_env(name)
+
 class Stack(list):
     def push(self, value):
         self.append(value)
@@ -96,37 +109,18 @@ class Translator(base.Translator):
             result += " \"%%%s%%\" " % self._get_variant_name(argument)
         return result, return_variant_name
 
-    def _gen_set_env(self, name, value="", do_math=False):
-        opt = ""
-        if do_math:
-            opt = "/a"
-
-        return 'set %s "%s=%s"' % (opt, name, value)
-
-    def _parse_env(self, name, value="", do_math=False):
-        source = Source()
-        if not isinstance(name, six.string_types):
-            name = self._get_variant_name(name)
-        source.front.append(self._gen_set_env(name, value, do_math=do_math))
-        source.back.insert(0, self._gen_set_env(name))
-        return source
-
     def _parse_value(self, value):
         source = Source()
         variant_name = self._get_temp_variant_name()
 
         if type(value) == ast.Num:
-            source.append(self._parse_env(
-                variant_name,
-                value.n))
+            source.set_env(variant_name, value.n)
         elif type(value) == ast.Str:
-            source.append(self._parse_env(
-                variant_name,
-                value.s))
+            source.set_env(variant_name, value.s)
         elif type(value) == ast.Call:
             text, result_variant_name = self._gen_call(value)
             source.front.append(text)
-            source.append(self._parse_env(result_variant_name))
+            source.del_env(result_variant_name)
         elif type(value) == ast.BinOp:
             left_source = self._parse_value(value.left)
             right_source = self._parse_value(value.right)
@@ -148,11 +142,10 @@ class Translator(base.Translator):
 
             source.append(left_source)
             source.append(right_source)
-            source.append(self._parse_env(
+            source.set_env(
                 variant_name,
                 "%s%s%s" % (left_source.ret, opt, right_source.ret),
-                do_math=True))
-
+                do_math=True)
         source.ret = variant_name
         return source
 
@@ -162,7 +155,7 @@ class Translator(base.Translator):
         sub_source = self._parse_value(value)
 
         source.front += sub_source.front
-        source.append(self._parse_env(name, "%%%s%%" % sub_source.ret))
+        source.set_env(name.id, "%%%s%%" % sub_source.ret)
         source.front += sub_source.back
 
         return source
