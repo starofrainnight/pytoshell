@@ -5,6 +5,18 @@ import weakref
 from . import base
 from .. import _get_data_path
 
+class LocalContext(object):
+    def __init__(self, enter_func, exit_func):
+        self._enter_func = enter_func
+        self._exit_func = exit_func
+
+    def __enter__(self):
+        self._enter_func()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._exit_func(exc_type, exc_val, exc_tb)
+
 class Source(object):
     def __init__(self):
         self.front = []
@@ -14,6 +26,21 @@ class Source(object):
     def append(self, other_source):
         self.front += other_source.front
         self.back = other_source.back + self.back
+
+    def _context_enter(self):
+        self.add_initialize("SETLOCAL")
+
+    def _context_exit(self, exc_type, exc_val, exc_tb):
+        self.add_initialize("ENDLOCAL")
+
+    def start_context(self):
+        return LocalContext(self._context_enter, self._context_exit)
+
+    def add_initialize(self, line):
+        self.front.append(line)
+
+    def add_finalize(self, line):
+        self.back.append(line)
 
 class Stack(list):
     def push(self, value):
@@ -156,11 +183,10 @@ class Translator(base.Translator):
                     source.append(sub_source)
 
         if "body" in node.__dict__:
-            with self._stack:
+            with self._stack, source.start_context():
                 for sub_node in node.body:
                     sub_source = self._parse_node(sub_node)
                     source.append(sub_source)
-
         return source
 
     def _mark_ast_tree(self, node):
