@@ -73,7 +73,7 @@ class Source(object):
 
     def _context_exit(self, exc_type, exc_val, exc_tb):
         self._temp_clearup_exit(exc_type, exc_val, exc_tb)
-        self.add_initialize("ENDLOCAL")
+        self.add_initialize('ENDLOCAL & SET "@PYTSR=%@PYTSR%"')
 
     def start_context(self):
         return LocalContext(self._context_enter, self._context_exit)
@@ -253,7 +253,6 @@ class Translator(base.Translator):
                     new_source.append(sub_source)
 
             if new_source != source:
-                print("Add what??")
                 source.add_definition(new_source)
 
         return source
@@ -305,5 +304,9 @@ class Translator(base.Translator):
                 lines += sub_source.back
 
         print(lines)
+
+        site_module_file = open(os.path.join(self.get_module_path(), "site.bat"), "r")
+        with site_module_file:
+            lines + site_module_file.readlines()
 
         return "\n".join(lines)
