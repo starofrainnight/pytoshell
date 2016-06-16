@@ -21,11 +21,17 @@ class Source(object):
     def __init__(self):
         self.front = []
         self.back = []
+        self.temp_finalize = []
 
     def get_ret_varaint(self):
         return "@PYTSR"
 
     def get_variant(self, name):
+        name = str(name)
+
+        if name.startswith("@"):
+            return name
+
         chars = []
         for c in name:
             if c.isupper():
@@ -36,18 +42,36 @@ class Source(object):
 
         return "@PYTSV%s" % "".join(chars)
 
+    def create_temp_varaint(self, name):
+        name = self.get_variant(name)
+        self.temp_finalize.insert(0, self.gen_set_env(name))
+        return name
+
     def append(self, other_source):
         self.front += other_source.front
         self.back = other_source.back + self.back
+        self.temp_finalize = other_source.temp_finalize + self.temp_finalize
+
+    def _temp_clearup_enter(self):
+        pass
+
+    def _temp_clearup_exit(self, exc_type, exc_val, exc_tb):
+        self.front += self.temp_finalize
+        self.temp_finalize.clear()
 
     def _context_enter(self):
         self.add_initialize("SETLOCAL")
+        self._temp_clearup_enter()
 
     def _context_exit(self, exc_type, exc_val, exc_tb):
+        self._temp_clearup_exit(exc_type, exc_val, exc_tb)
         self.add_initialize("ENDLOCAL")
 
     def start_context(self):
         return LocalContext(self._context_enter, self._context_exit)
+
+    def start_temp_clearup(self):
+        return LocalContext(self._temp_clearup_enter, self._temp_clearup_exit)
 
     def add_initialize(self, line):
         self.front.append(line)
@@ -55,18 +79,17 @@ class Source(object):
     def add_finalize(self, line):
         self.back.append(line)
 
-    def set_env(self, name, value="", do_math=False):
-        if not isinstance(name, six.string_types):
-            raise TypeError("name must be string type!")
-
+    def gen_set_env(self, name, value="", do_math=False):
         opt = ""
         if do_math:
             opt = "/a"
 
-        if not name.startswith("@"):
-            name = self.get_variant(name)
+        name = self.get_variant(name)
 
-        self.add_initialize('set %s "%s=%s"' % (opt, name, value))
+        return 'set %s "%s=%s"' % (opt, name, value)
+
+    def set_env(self, *args, **kwargs):
+        self.add_initialize(self.gen_set_env(*args, **kwargs))
 
     def del_env(self, name):
         self.set_env(name)
@@ -125,17 +148,16 @@ class Translator(base.Translator):
             text, result_variant_name = self._gen_call(value)
             source.front.append(text)
             source.del_env(result_variant_name)
-
         elif type(value) == ast.BinOp:
 
             left_source = self._parse_value(value.left)
             source.append(left_source)
-            left_temp_variant = source.get_variant(str(self._new_object_id()))
+            left_temp_variant = source.create_temp_varaint(self._new_object_id())
             source.set_env(left_temp_variant, source.get_ret_varaint())
 
             right_source = self._parse_value(value.right)
             source.append(right_source)
-            right_temp_variant = source.get_variant(str(self._new_object_id()))
+            right_temp_variant = source.create_temp_varaint(self._new_object_id())
             source.set_env(right_temp_variant, source.get_ret_varaint())
 
             operators = {
@@ -163,10 +185,8 @@ class Translator(base.Translator):
         source = Source()
 
         sub_source = self._parse_value(value)
-
-        source.front += sub_source.front
+        source.append(sub_source)
         source.set_env(name.id, "%%%s%%" % source.get_ret_varaint())
-        source.front += sub_source.back
 
         return source
 
@@ -175,15 +195,16 @@ class Translator(base.Translator):
 
         if type(node) == ast.Assign:
             atarget = node.targets[0]
-            if type(atarget) == ast.Name:
-                sub_source = self._parse_assign(atarget, node.value)
-                source.append(sub_source)
-            elif type(atarget) == ast.Tuple:
-                for i in range(len(atarget.elts)):
-                    avariable = atarget.elts[i]
-                    value = node.value.elts[i]
-                    sub_source = self._parse_assign(avariable, value)
+            with source.start_temp_clearup():
+                if type(atarget) == ast.Name:
+                    sub_source = self._parse_assign(atarget, node.value)
                     source.append(sub_source)
+                elif type(atarget) == ast.Tuple:
+                    for i in range(len(atarget.elts)):
+                        avariable = atarget.elts[i]
+                        value = node.value.elts[i]
+                        sub_source = self._parse_assign(avariable, value)
+                        source.append(sub_source)
 
         if "body" in node.__dict__:
             with self._stack, source.start_context():
