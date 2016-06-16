@@ -143,7 +143,7 @@ class Translator(base.Translator):
         elif type(value) == ast.Str:
             source.set_env(variant_name, value.s)
         elif type(value) == ast.Name:
-            source.set_env(variant_name, source.get_variant(value.id))
+            source.set_env(variant_name, "%%%s%%" % source.get_variant(value.id))
         elif type(value) == ast.Call:
             text, result_variant_name = self._gen_call(value)
             source.front.append(text)
@@ -153,12 +153,12 @@ class Translator(base.Translator):
             left_source = self._parse_value(value.left)
             source.append(left_source)
             left_temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(left_temp_variant, source.get_ret_varaint())
+            source.set_env(left_temp_variant, "%%%s%%" % source.get_ret_varaint())
 
             right_source = self._parse_value(value.right)
             source.append(right_source)
             right_temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(right_temp_variant, source.get_ret_varaint())
+            source.set_env(right_temp_variant, "%%%s%%" % source.get_ret_varaint())
 
             operators = {
                 ast.Add:"+",
