@@ -22,6 +22,7 @@ class Source(object):
         self.front = []
         self.back = []
         self.temp_finalize = []
+        self.definitions = []
 
     def get_ret_varaint(self):
         return "@PYTSR"
@@ -42,6 +43,12 @@ class Source(object):
 
         return "@PYTSV%s" % "".join(chars)
 
+    def get_function(self, name):
+        return ":%s" % self.get_variant(name.replace(".", "_"))
+
+    def get_function_variant(self, name):
+        return self.get_function(name)[1:]
+
     def create_temp_varaint(self, name):
         name = self.get_variant(name)
         self.temp_finalize.insert(0, self.gen_set_env(name))
@@ -51,6 +58,7 @@ class Source(object):
         self.front += other_source.front
         self.back = other_source.back + self.back
         self.temp_finalize = other_source.temp_finalize + self.temp_finalize
+        self.definitions += other_source.definitions
 
     def _temp_clearup_enter(self):
         pass
@@ -78,6 +86,12 @@ class Source(object):
 
     def add_finalize(self, line):
         self.back.append(line)
+
+    def add_definition(self, source):
+        if not isinstance(source, Source):
+            raise TypeError("source must be Source type!")
+
+        self.definitions.append(source)
 
     def gen_set_env(self, name, value="", do_math=False):
         opt = ""
@@ -134,9 +148,8 @@ class Translator(base.Translator):
 
         source = Source()
 
-        raw_function_name = node.func.id.replace(".", "_")
-        batch_function_name = ":%s" % raw_function_name
-        function_name = source.get_variant(raw_function_name)
+        batch_function_name = source.get_function(node.func.id)
+        function_name = source.get_function_variant(node.func.id)
 
         arguments = ""
         for argument in node.args:
@@ -226,10 +239,23 @@ class Translator(base.Translator):
                         source.append(sub_source)
 
         if "body" in node.__dict__:
-            with self._stack, source.start_context():
+
+            if isinstance(node, ast.FunctionDef):
+                new_source = Source()
+                new_source.add_initialize(new_source.get_function(node.name))
+                new_source.add_finalize("EXIT /B %ERRORLEVEL%")
+            else:
+                new_source = source
+
+            with self._stack, new_source.start_context():
                 for sub_node in node.body:
                     sub_source = self._parse_node(sub_node)
-                    source.append(sub_source)
+                    new_source.append(sub_source)
+
+            if new_source != source:
+                print("Add what??")
+                source.add_definition(new_source)
+
         return source
 
     def _mark_ast_tree(self, node):
@@ -273,6 +299,10 @@ class Translator(base.Translator):
             lines += source.front
             lines += source.back
             lines.append("EXIT /B %ERRORLEVEL%")
+
+            for sub_source in source.definitions:
+                lines += sub_source.front
+                lines += sub_source.back
 
         print(lines)
 
