@@ -132,14 +132,22 @@ class Translator(base.Translator):
         if not isinstance(node, ast.Call):
             raise TypeError("node must be type of ast.Call!")
 
-        result = ""
-        return_variant_name = self._get_temp_variant_name()
-        function_name = node.func.id.replace(".", "_")
-        result += function_name
-        result += " %s " % return_variant_name
+        source = Source()
+
+        raw_function_name = node.func.id.replace(".", "_")
+        batch_function_name = ":%s" % raw_function_name
+        function_name = source.get_variant(raw_function_name)
+
+        arguments = ""
         for argument in node.args:
-            result += " \"%%%s%%\" " % self._get_variant_name(argument)
-        return result, return_variant_name
+            arguments += " \"%%%s%%\" " % source.get_variant(argument.id)
+
+        source.add_initialize("IF \"%%%s%%\"==\"\" (" % function_name)
+        source.add_initialize("\tcall %s %s" % (batch_function_name, arguments))
+        source.add_initialize(") ELSE (")
+        source.add_initialize("\tcall %%%s%% %s" % (function_name, arguments))
+        source.add_initialize(")")
+        return source
 
     def _parse_value(self, value):
         source = Source()
@@ -152,9 +160,8 @@ class Translator(base.Translator):
         elif type(value) == ast.Name:
             source.set_env(variant_name, "%%%s%%" % source.get_variant(value.id))
         elif type(value) == ast.Call:
-            text, result_variant_name = self._gen_call(value)
-            source.front.append(text)
-            source.del_env(result_variant_name)
+            sub_source = self._gen_call(value)
+            source.append(sub_source)
         elif type(value) == ast.BinOp:
 
             left_source = self._parse_value(value.left)
