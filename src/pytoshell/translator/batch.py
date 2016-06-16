@@ -140,7 +140,12 @@ class Translator(base.Translator):
 
         arguments = ""
         for argument in node.args:
-            arguments += " \"%%%s%%\" " % source.get_variant(argument.id)
+            sub_source = self._parse_value(argument)
+            source.append(sub_source)
+
+            temp_variant = source.create_temp_varaint(self._new_object_id())
+            source.set_env(temp_variant, "%%%s%%" % source.get_ret_varaint())
+            arguments += " \"%%%s%%\" " % temp_variant
 
         source.add_initialize("IF \"%%%s%%\"==\"\" (" % function_name)
         source.add_initialize("\tCALL %s %s" % (batch_function_name, arguments))
