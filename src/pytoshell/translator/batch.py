@@ -21,7 +21,6 @@ class Source(object):
     def __init__(self):
         self.front = []
         self.back = []
-        self.ret = None
 
     def get_ret_varaint(self):
         return "@PYTSR"
@@ -114,19 +113,30 @@ class Translator(base.Translator):
 
     def _parse_value(self, value):
         source = Source()
-        variant_name = source.get_variant(str(self._new_object_id()))
+        variant_name = source.get_ret_varaint()
 
         if type(value) == ast.Num:
             source.set_env(variant_name, value.n)
         elif type(value) == ast.Str:
             source.set_env(variant_name, value.s)
+        elif type(value) == ast.Name:
+            source.set_env(variant_name, source.get_variant(value.id))
         elif type(value) == ast.Call:
             text, result_variant_name = self._gen_call(value)
             source.front.append(text)
             source.del_env(result_variant_name)
+
         elif type(value) == ast.BinOp:
+
             left_source = self._parse_value(value.left)
+            source.append(left_source)
+            left_temp_variant = source.get_variant(str(self._new_object_id()))
+            source.set_env(left_temp_variant, source.get_ret_varaint())
+
             right_source = self._parse_value(value.right)
+            source.append(right_source)
+            right_temp_variant = source.get_variant(str(self._new_object_id()))
+            source.set_env(right_temp_variant, source.get_ret_varaint())
 
             operators = {
                 ast.Add:"+",
@@ -143,13 +153,10 @@ class Translator(base.Translator):
 
             opt = operators[type(value.op)]
 
-            source.append(left_source)
-            source.append(right_source)
             source.set_env(
                 variant_name,
-                "%s%s%s" % (left_source.ret, opt, right_source.ret),
+                "%s%s%s" % (left_temp_variant, opt, right_temp_variant),
                 do_math=True)
-        source.ret = variant_name
         return source
 
     def _parse_assign(self, name, value):
@@ -158,7 +165,7 @@ class Translator(base.Translator):
         sub_source = self._parse_value(value)
 
         source.front += sub_source.front
-        source.set_env(name.id, "%%%s%%" % sub_source.ret)
+        source.set_env(name.id, "%%%s%%" % source.get_ret_varaint())
         source.front += sub_source.back
 
         return source
