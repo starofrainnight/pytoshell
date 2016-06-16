@@ -31,6 +31,7 @@ class Source(object):
         for c in name:
             if c.isupper():
                 chars.append("#")
+            else:
                 c = c.upper()
             chars.append(c)
 
@@ -62,6 +63,9 @@ class Source(object):
         opt = ""
         if do_math:
             opt = "/a"
+
+        if not name.startswith("@"):
+            name = self.get_variant(name)
 
         self.front.append('set %s "%s=%s"' % (opt, name, value))
 
@@ -95,20 +99,6 @@ class Translator(base.Translator):
         self._object_id += 1
         return self._object_id
 
-    def _get_variant_name(self, node):
-        node_id = ""
-        if isinstance(node, six.string_types):
-            node_id = node
-        else:
-            node_id = node.id
-        if node_id not in self._stack.top:
-            self._stack.top[node_id] = self._new_object_id()
-
-        return "__PTSO%s" % self._stack.top[node_id]
-
-    def _get_temp_variant_name(self):
-        return "__PTSTMPO%s" % self._new_object_id()
-
     def _gen_call(self, node):
         if not isinstance(node, ast.Call):
             raise TypeError("node must be type of ast.Call!")
@@ -124,7 +114,7 @@ class Translator(base.Translator):
 
     def _parse_value(self, value):
         source = Source()
-        variant_name = self._get_temp_variant_name()
+        variant_name = source.get_variant(str(self._new_object_id()))
 
         if type(value) == ast.Num:
             source.set_env(variant_name, value.n)
