@@ -67,7 +67,7 @@ class Source(object):
         if not name.startswith("@"):
             name = self.get_variant(name)
 
-        self.front.append('set %s "%s=%s"' % (opt, name, value))
+        self.add_initialize('set %s "%s=%s"' % (opt, name, value))
 
     def del_env(self, name):
         self.set_env(name)
