@@ -27,12 +27,7 @@ class Source(object):
     def get_ret_varaint(self):
         return "@PYTSR"
 
-    def get_variant(self, name):
-        name = str(name)
-
-        if name.startswith("@"):
-            return name
-
+    def escape_variant_name(self, name):
         chars = []
         for c in name:
             if c.isupper():
@@ -40,8 +35,28 @@ class Source(object):
             else:
                 c = c.upper()
             chars.append(c)
+        return "".join(chars)
 
-        return "@PYTSV%s" % "".join(chars)
+    def unescape_variant_name(self, name):
+        chars = []
+        for i in range(len(name)):
+            c = name[i]
+            if c == "#":
+                i += 1
+                c = name[i].upper()
+            else:
+                c = c.lower()
+
+            chars.append(c)
+        return "".join(chars)
+
+    def get_variant(self, name):
+        name = str(name)
+
+        if name.startswith("@"):
+            return name
+
+        return "@PYTSV%s" % self.escape_variant_name(name)
 
     def get_function(self, name):
         return ":%s" % self.get_variant(name.replace(".", "_"))
