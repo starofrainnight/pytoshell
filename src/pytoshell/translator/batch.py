@@ -88,8 +88,15 @@ class Source(object):
 
         return 'set %s "%s=%s"' % (opt, name, value)
 
+    def gen_set_env_object(self, name, value="", do_math=False):
+        value = "%s@%s" % (type(value).__name__, value)
+        return self.gen_set_env(name, value, do_math)
+
     def set_env(self, *args, **kwargs):
         self.add_initialize(self.gen_set_env(*args, **kwargs))
+
+    def set_env_object(self, *args, **kwargs):
+        self.add_initialize(self.gen_set_env_object(*args, **kwargs))
 
     def del_env(self, name):
         self.set_env(name)
@@ -139,9 +146,9 @@ class Translator(base.Translator):
         variant_name = source.get_ret_varaint()
 
         if type(value) == ast.Num:
-            source.set_env(variant_name, value.n)
+            source.set_env_object(variant_name, value.n)
         elif type(value) == ast.Str:
-            source.set_env(variant_name, value.s)
+            source.set_env_object(variant_name, value.s)
         elif type(value) == ast.Name:
             source.set_env(variant_name, "%%%s%%" % source.get_variant(value.id))
         elif type(value) == ast.Call:
