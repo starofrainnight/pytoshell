@@ -14,7 +14,7 @@ If there have any upper case character, we append character '#' before it:
 
 ::
 
- Os.Path.Join ==> set "@PYTSV#OS_#PATH_#JOIN=function@Os_Path_Join"
+ Function Os.Path.Join ==> set "@PYTSV#OS_#PATH_#JOIN=function@Os_Path_Join"
 
 Prefixs
 ---------------------
@@ -24,11 +24,12 @@ Prefixs
 
 Name
 ---------------------
-Prefix with "@PYTSV(Number)"
+Format : "@PYTSV(Variant Name)"
+Temp Format : "@PYTSV(Number)"
 
 Value
 ---------------------
-Type prefixed "(Type)@(Value)"
+Format: "(Type)@(Value)", type prefixed
 
 Value will be converted to a normal temp environment value before using.
 
