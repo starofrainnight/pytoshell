@@ -104,13 +104,16 @@ class CommandGenerator(object):
 
     @classmethod
     def set_variant(cls, name, value, enabled_type_info=True):
+        if isinstance(name, Variant):
+            name = name.id_
+
         if (not name.startswith(Object.RAW_TYPE)) and enabled_type_info:
             value = "%s@%s" % (type(value).__name__, value)
         return 'set "%s=%s"' % (name, value)
 
     @classmethod
     def unset_variant(cls, name):
-        return set_variant(cls, name, "")
+        return cls.set_variant(name, "")
 
     @classmethod
     def calcuate_expr(cls, expression, variant=RetVariant()):
@@ -328,7 +331,8 @@ class Translator(base.Translator):
 
     def _parse_value(self, value):
         source = Source(self._cg)
-        variant_name = self._ret_variant.name
+
+        variant_name = self._ret_variant.id_
 
         if type(value) == ast.Num:
             source.add_initialize(self._cg.set_variant(variant_name, value.n))
