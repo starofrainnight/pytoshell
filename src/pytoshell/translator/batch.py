@@ -93,7 +93,7 @@ class CommandGenerator(object):
         return self._variant_id
 
     def _new_raw_variant(self):
-        return RawVariant(self._new_variant_id(), self.RAW_TYPE)
+        return Variant(self._new_variant_id(), Object.RAW_TYPE)
 
     @classmethod
     def _list_safe_append(cls, alist, value):
@@ -103,17 +103,17 @@ class CommandGenerator(object):
             alist += value
 
     @classmethod
-    def set_variant(cls, name, value, enabled_type_info=True):
+    def set_variant(cls, name, value, is_raw=False):
         if isinstance(name, Variant):
             name = name.id_
 
-        if (not name.startswith(Object.RAW_TYPE)) and enabled_type_info:
+        if (not name.startswith(Object.RAW_TYPE)) and (not is_raw):
             value = "%s@%s" % (type(value).__name__, value)
         return 'set "%s=%s"' % (name, value)
 
     @classmethod
     def unset_variant(cls, name):
-        return cls.set_variant(name, "")
+        return cls.set_variant(name, "", is_raw=True)
 
     @classmethod
     def calcuate_expr(cls, expression, variant=RetVariant()):
@@ -209,9 +209,9 @@ class Source(object):
         self._cg = command_generator
 
     def create_temp_varaint(self, name):
-        name = Variant(name).id_
-        self.temp_finalize.insert(0, self.gen_set_env(name))
-        return name
+        variant = self._cg._new_raw_variant()
+        self.temp_finalize.insert(0, self._cg.unset_variant(variant))
+        return variant
 
     def append(self, other_source):
         self.front += other_source.front
@@ -252,29 +252,6 @@ class Source(object):
 
         self.definitions.append(source)
 
-    def gen_set_env(self, name, value="", do_math=False):
-        opt = ""
-        if do_math:
-            opt = "/a"
-
-        if not name.startswith("@"):
-            name = Variant(name).id_
-
-        return 'SET %s "%s=%s"' % (opt, name, value)
-
-    def gen_set_env_object(self, name, value="", do_math=False):
-        value = "%s@%s" % (type(value).__name__, value)
-        return self.gen_set_env(name, value, do_math)
-
-    def set_env(self, *args, **kwargs):
-        self.add_initialize(self.gen_set_env(*args, **kwargs))
-
-    def set_env_object(self, *args, **kwargs):
-        self.add_initialize(self.gen_set_env_object(*args, **kwargs))
-
-    def del_env(self, name):
-        self.set_env(name)
-
 class Stack(list):
     def push(self, value):
         self.append(value)
@@ -310,8 +287,8 @@ class Translator(base.Translator):
 
         source = Source(self._cg)
 
-        batch_function_name = Function(node.func.id).id_
-        function_name = Variant(node.func.id).id_
+        batch_function = Function(node.func.id)
+        function_variant = Variant(node.func.id)
 
         arguments = ""
         for argument in node.args:
@@ -319,13 +296,13 @@ class Translator(base.Translator):
             source.append(sub_source)
 
             temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(temp_variant, self._ret_variant.value)
-            arguments += " \"%%%s%%\" " % temp_variant
+            source.add_initialize(self._cg.set_variant(temp_variant, self._ret_variant.value))
+            arguments += " \"%s\" " % temp_variant.value
 
-        source.add_initialize("IF \"%%%s%%\"==\"\" (" % function_name)
-        source.add_initialize("\tCALL %s %s" % (batch_function_name, arguments))
+        source.add_initialize("IF \"%s\"==\"\" (" % function_variant.value)
+        source.add_initialize("\tCALL %s %s" % (batch_function.name, arguments))
         source.add_initialize(") ELSE (")
-        source.add_initialize("\tCALL %%%s%% %s" % (function_name, arguments))
+        source.add_initialize("\tCALL %s %s" % (function_variant.value, arguments))
         source.add_initialize(")")
         return source
 
@@ -340,7 +317,7 @@ class Translator(base.Translator):
             source.add_initialize(self._cg.set_variant(variant_name, value.s))
         elif type(value) == ast.Name:
             source.add_initialize(self._cg.set_variant(
-                variant_name, Variant(value.id).value, enabled_type_info=False))
+                variant_name, Variant(value.id).value, is_raw=True))
         elif type(value) == ast.Call:
             sub_source = self._gen_call(value)
             source.append(sub_source)
@@ -349,12 +326,14 @@ class Translator(base.Translator):
             left_source = self._parse_value(value.left)
             source.append(left_source)
             left_temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(left_temp_variant, self._ret_variant.value)
+            source.add_initialize(self._cg.set_variant(
+                left_temp_variant, self._ret_variant.value))
 
             right_source = self._parse_value(value.right)
             source.append(right_source)
             right_temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(right_temp_variant, self._ret_variant.value)
+            source.add_initialize(self._cg.set_variant(
+                right_temp_variant, self._ret_variant.value))
 
             operators = {
                 ast.Add:"+",
@@ -371,10 +350,9 @@ class Translator(base.Translator):
 
             opt = operators[type(value.op)]
 
-            source.set_env(
-                variant_name,
+            source.add_initialize(self._cg.calcuate_expr(
                 "%s%s%s" % (left_temp_variant, opt, right_temp_variant),
-                do_math=True)
+                variant=self._ret_variant))
         return source
 
     def _parse_assign(self, name, value):
@@ -382,7 +360,8 @@ class Translator(base.Translator):
 
         sub_source = self._parse_value(value)
         source.append(sub_source)
-        source.set_env(name.id, self._ret_variant.value)
+        source.add_initialize(self._cg.set_variant(
+            Variant(name.id), self._ret_variant.value, is_raw=True))
 
         return source
 
