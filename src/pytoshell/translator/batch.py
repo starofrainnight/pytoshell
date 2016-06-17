@@ -131,7 +131,7 @@ class CommandGenerator(object):
 
     @classmethod
     def end_context(cls):
-        return "endlocal"
+        return 'endlocal & SET "@PYTSR=%@PYTSR%"'
 
     @classmethod
     def comment(cls, text):
@@ -227,12 +227,12 @@ class Source(object):
         self.temp_finalize.clear()
 
     def _context_enter(self):
-        self.add_initialize("SETLOCAL")
+        self.add_initialize(self._cg.begin_context())
         self._temp_clearup_enter()
 
     def _context_exit(self, exc_type, exc_val, exc_tb):
         self._temp_clearup_exit(exc_type, exc_val, exc_tb)
-        self.add_initialize('ENDLOCAL & SET "@PYTSR=%@PYTSR%"')
+        self.add_initialize(self._cg.end_context())
 
     def start_context(self):
         return LocalContext(self._context_enter, self._context_exit)
