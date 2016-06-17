@@ -104,6 +104,7 @@ class CommandGenerator(object):
 
         if isinstance(value, Variant):
             value = value.value
+            is_raw = True
 
         if (name.startswith("@")
             and (not name[1:].startswith(Object.RAW_TYPE))
@@ -311,8 +312,7 @@ class Translator(base.Translator):
         elif type(value) == ast.Str:
             source.add_initialize(self._cg.set_variant(variant, value.s))
         elif type(value) == ast.Name:
-            source.add_initialize(self._cg.set_variant(
-                variant, Variant(value.id), is_raw=True))
+            source.add_initialize(self._cg.set_variant(variant, Variant(value.id)))
         elif type(value) == ast.Call:
             sub_source = self._gen_call(value)
             source.append(sub_source)
@@ -355,8 +355,7 @@ class Translator(base.Translator):
 
         sub_source = self._parse_value(value)
         source.append(sub_source)
-        source.add_initialize(self._cg.set_variant(
-            Variant(name.id), self._ret_variant.value, is_raw=True))
+        source.add_initialize(self._cg.set_variant(Variant(name.id), self._ret_variant))
 
         return source
 
