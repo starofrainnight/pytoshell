@@ -212,12 +212,12 @@ class CommandGenerator(object):
         return
 
 class Source(object):
-    def __init__(self):
+    def __init__(self, command_generator):
         self.front = []
         self.back = []
         self.temp_finalize = []
         self.definitions = []
-        self._cg = CommandGenerator()
+        self._cg = command_generator
 
     def escape_variant_name(self, name):
         chars = []
@@ -355,7 +355,7 @@ class Translator(base.Translator):
         if not isinstance(node, ast.Call):
             raise TypeError("node must be type of ast.Call!")
 
-        source = Source()
+        source = Source(self._cg)
 
         batch_function_name = source.get_function(node.func.id)
         function_name = source.get_function_variant(node.func.id)
@@ -377,7 +377,7 @@ class Translator(base.Translator):
         return source
 
     def _parse_value(self, value):
-        source = Source()
+        source = Source(self._cg)
         variant_name = self._ret_variant.name
 
         if type(value) == ast.Num:
@@ -423,7 +423,7 @@ class Translator(base.Translator):
         return source
 
     def _parse_assign(self, name, value):
-        source = Source()
+        source = Source(self._cg)
 
         sub_source = self._parse_value(value)
         source.append(sub_source)
@@ -432,7 +432,7 @@ class Translator(base.Translator):
         return source
 
     def _parse_node(self, node):
-        source = Source()
+        source = Source(self._cg)
 
         if type(node) == ast.Assign:
             atarget = node.targets[0]
@@ -450,7 +450,7 @@ class Translator(base.Translator):
         if "body" in node.__dict__:
 
             if isinstance(node, ast.FunctionDef):
-                new_source = Source()
+                new_source = Source(self._cg)
                 new_source.add_initialize(new_source.get_function(node.name))
                 new_source.add_finalize("EXIT /B %ERRORLEVEL%")
             else:
