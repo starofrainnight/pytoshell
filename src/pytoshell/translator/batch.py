@@ -103,14 +103,14 @@ class CommandGenerator(object):
             alist += value
 
     @classmethod
-    def define_variant(cls, name, value):
+    def set_variant(cls, name, value):
         if not name.startswith(Object.RAW_TYPE):
             value = "%s@%s" % (type(value).__name__, value)
         return 'set "%s=%s"' % (name, value)
 
     @classmethod
-    def undefine_variant(cls, name):
-        return define_variant(cls, name, "")
+    def unset_variant(cls, name):
+        return set_variant(cls, name, "")
 
     @classmethod
     def calcuate_expr(cls, expression, variant=RetVariant()):
@@ -165,7 +165,7 @@ class CommandGenerator(object):
     @classmethod
     def get_type(cls, varaint):
         lines = []
-        lines.append(cls.undefine_variant(RetVariant()))
+        lines.append(cls.unset_variant(RetVariant()))
         result = ""
         result += 'for /f "tokens=1 delims=@" %%%%a "'
         result += ' in ("%s") ' % varaint.value
@@ -331,7 +331,7 @@ class Translator(base.Translator):
         variant_name = self._ret_variant.name
 
         if type(value) == ast.Num:
-            source.set_env_object(variant_name, value.n)
+            source.add_initialize(self._cg.set_variant(variant_name, value.n))
         elif type(value) == ast.Str:
             source.set_env_object(variant_name, value.s)
         elif type(value) == ast.Name:
