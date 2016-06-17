@@ -250,12 +250,6 @@ class Source(object):
 
         return "@PYTSV%s" % self.escape_variant_name(name)
 
-    def get_function(self, name):
-        return ":%s" % self.get_variant(name.replace(".", "_"))
-
-    def get_function_variant(self, name):
-        return self.get_function(name)[1:]
-
     def create_temp_varaint(self, name):
         name = self.get_variant(name)
         self.temp_finalize.insert(0, self.gen_set_env(name))
@@ -357,8 +351,8 @@ class Translator(base.Translator):
 
         source = Source(self._cg)
 
-        batch_function_name = source.get_function(node.func.id)
-        function_name = source.get_function_variant(node.func.id)
+        batch_function_name = Function(node.func.id).id_
+        function_name = NormalVariant(node.func.id).id_
 
         arguments = ""
         for argument in node.args:
@@ -451,7 +445,7 @@ class Translator(base.Translator):
 
             if isinstance(node, ast.FunctionDef):
                 new_source = Source(self._cg)
-                new_source.add_initialize(new_source.get_function(node.name))
+                new_source.add_initialize(Function(node.name).id_)
                 new_source.add_finalize("EXIT /B %ERRORLEVEL%")
             else:
                 new_source = source
