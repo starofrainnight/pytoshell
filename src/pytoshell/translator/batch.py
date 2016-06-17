@@ -21,6 +21,14 @@ class CommandGenerator(object):
     RET_VARIANT = "@PYTSR"
     NORMAL_PREFIX = "@PYTSV"
     INTERNAL_PREFIX = "@PYTSI"
+    RAW_PREFIX = "@PYTSA"
+
+    def __init__(self):
+        self._variant_id = 0
+
+    def _new_raw_variant(self):
+        self._variant_id += 1
+        return self.variant_from_name(str(self._variant_id), self.RAW_PREFIX)
 
     @classmethod
     def _list_safe_append(cls, alist, value):
