@@ -23,6 +23,13 @@ class CommandGenerator(object):
     INTERNAL_PREFIX = "@PYTSI"
 
     @classmethod
+    def _list_safe_append(cls, alist, value):
+        if isinstance(value, six.string_types):
+            alist.append(value)
+        else:
+            alist += value
+
+    @classmethod
     def define_variant(cls, name, value):
         return 'set "%s=%s"' % (name, value)
 
@@ -35,7 +42,14 @@ class CommandGenerator(object):
         return "%%%s%%" % variant
 
     @classmethod
-    def encode_variant(cls, name, prefix=NORMAL_PREFIX):
+    def get_function(cls, name):
+        if not name.prefix("@"):
+            name = cls.variant_from_name(name.replace(".", "_"))
+        name = ":" + name[1:]
+        return name
+
+    @classmethod
+    def variant_from_name(cls, name, prefix=NORMAL_PREFIX):
         name = str(name)
 
         if name.startswith("@"):
@@ -52,7 +66,7 @@ class CommandGenerator(object):
         return "%s%s" % (prefix, "".join(chars))
 
     @classmethod
-    def decode_variant(cls, variant):
+    def variant_to_name(cls, variant):
         name = variant
         chars = []
         for i in range(len(name)):
@@ -124,9 +138,36 @@ class CommandGenerator(object):
         return lines
 
     @classmethod
-    def invoke(cls, varaint, function, *args):
+    def get_type(cls, varaint):
         lines = []
-        lines.append("")
+        lines.append(cls.undefine_variant(self.RET_VARIANT))
+        result = ""
+        result += 'for /f "tokens=1 delims=@" %%%%a "'
+        result += ' in ("%s") ' % cls.get_value(variant)
+        result += ' do set "%s=str@%%%%a" ' % cls.RET_VARIANT
+        lines.append(result)
+
+        return lines
+
+    @classmethod
+    def invoke(cls, function, *args):
+        lines = []
+        parties = function.split(".")
+        variant = cls.variant_from_name(parties[0])
+        del parties[0]
+
+        static_function = cls.get_function(function)
+        dynamic_function = ':' + cls.get_value(variant) + cls.get_function(function)[len(cls.NORMAL_PREFIX):]
+        arguments = ' '.join(args)
+
+        if_else_lines = cls.if_equal(
+            cls.get_value(variant), "",
+            "call %s %s" % (static_function, arguments),
+            "call %s %s" % (dynamic_function, arguments))
+
+        _list_safe_append(lines, cls.get_type(variant))
+        _list_safe_append(lines, if_else_lines)
+
         return
 
 class Source(object):
