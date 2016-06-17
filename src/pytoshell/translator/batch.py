@@ -113,13 +113,6 @@ class CommandGenerator(object):
         return define_variant(cls, name, "")
 
     @classmethod
-    def get_function(cls, name):
-        if not name.prefix("@"):
-            name = cls.variant_from_name(name.replace(".", "_"))
-        name = ":" + name[1:]
-        return name
-
-    @classmethod
     def calcuate_expr(cls, expression, variant=RetVariant()):
         return 'set /a "%s=%s" > NUL' % (variant.id_, expression)
 
