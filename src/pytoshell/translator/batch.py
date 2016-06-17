@@ -205,7 +205,7 @@ class Source(object):
         self.definitions = []
         self._cg = command_generator
 
-    def create_temp_varaint(self, name):
+    def create_temp_varaint(self):
         variant = self._cg._new_raw_variant()
         self.temp_finalize.insert(0, self._cg.unset_variant(variant))
         return variant
@@ -270,13 +270,8 @@ class Translator(base.Translator):
 
     def __init__(self):
         self._stack = Stack()
-        self._object_id = 0
         self._cg = CommandGenerator()
         self._ret_variant = RetVariant()
-
-    def _new_object_id(self):
-        self._object_id += 1
-        return self._object_id
 
     def _gen_call(self, node):
         if not isinstance(node, ast.Call):
@@ -292,7 +287,7 @@ class Translator(base.Translator):
             sub_source = self._parse_value(argument)
             source.append(sub_source)
 
-            temp_variant = source.create_temp_varaint(self._new_object_id())
+            temp_variant = source.create_temp_varaint()
             source.add_initialize(self._cg.set_variant(temp_variant, self._ret_variant.value))
             arguments += " \"%s\" " % temp_variant.value
 
@@ -322,13 +317,13 @@ class Translator(base.Translator):
 
             left_source = self._parse_value(value.left)
             source.append(left_source)
-            left_temp_variant = source.create_temp_varaint(self._new_object_id())
+            left_temp_variant = source.create_temp_varaint()
             source.add_initialize(self._cg.set_variant(
                 left_temp_variant, self._ret_variant.value))
 
             right_source = self._parse_value(value.right)
             source.append(right_source)
-            right_temp_variant = source.create_temp_varaint(self._new_object_id())
+            right_temp_variant = source.create_temp_varaint()
             source.add_initialize(self._cg.set_variant(
                 right_temp_variant, self._ret_variant.value))
 
