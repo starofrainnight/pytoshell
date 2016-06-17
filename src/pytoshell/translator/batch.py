@@ -107,7 +107,9 @@ class CommandGenerator(object):
         if isinstance(name, Variant):
             name = name.id_
 
-        if (not name.startswith(Object.RAW_TYPE)) and (not is_raw):
+        if (name.startswith("@")
+            and (not name[1:].startswith(Object.RAW_TYPE))
+            and (not is_raw)):
             value = "%s@%s" % (type(value).__name__, value)
         return 'set "%s=%s"' % (name, value)
 
