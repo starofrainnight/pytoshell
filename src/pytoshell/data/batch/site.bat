@@ -1,15 +1,15 @@
 :: The basic library included all routines that needs by pytoshell
 
 :: Get the type of an object
-:@PYTSVTYPE OBJECT
-SETLOCAL
-CALL :@PYTSVSTR_REMOVE_QUOTES %1
-SET "@PYTSV-OBJECT=%@PYTSR%"
-FOR /F "tokens=1 delims=@" %%A IN ("%@PYTSV-OBJECT%") DO SET "@PYTSR=%%A"
-ENDLOCAL & SET "@PYTSR=%@PYTSR%"
-EXIT /B %ERRORLEVEL%
+:@pytsitype object
+setlocal
+call :@pytsistr_remove_quotes %1
+set "@PYTSV-OBJECT=%@PYTSR%"
+for /f "tokens=1 delims=@" %%a in ("%@PYTSV-OBJECT%") do set "@PYTSR=%%a"
+endlocal & set "@PYTSR=%@PYTSR%"
+exit /b %ERRORLEVEL%
 
-:@PYTSVSTR_REMOVE_QUOTES SELF
-FOR /F "useback tokens=*" %%A IN ('%1') DO SET "@PYTSR=%%~A"
-ENDLOCAL & SET "@PYTSR=%@PYTSR%"
-EXIT /B %ERRORLEVEL%
+:@pytsistr_remove_quotes self
+for /f "useback tokens=*" %%a in ('%1') do set "@PYTSR=%%~a"
+endlocal & set "@PYTSR=%@PYTSR%"
+exit /b %ERRORLEVEL%
