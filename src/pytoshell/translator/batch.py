@@ -351,7 +351,7 @@ class Translator(base.Translator):
             opt = operators[type(value.op)]
 
             source.add_initialize(self._cg.calcuate_expr(
-                "%s%s%s" % (left_temp_variant, opt, right_temp_variant),
+                "%s%s%s" % (left_temp_variant.id_, opt, right_temp_variant.id_),
                 variant=self._ret_variant))
         return source
 
