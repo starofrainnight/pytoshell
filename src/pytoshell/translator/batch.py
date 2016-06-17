@@ -64,7 +64,7 @@ class Function(Object):
         return ":" + super().id_
 
 class Variant(Object):
-    def __init__(self, name, type_):
+    def __init__(self, name, type_=Object.NORMAL_TYPE):
         super().__init__(name, type_)
 
     @property
@@ -78,18 +78,6 @@ class Variant(Object):
 class RetVariant(Variant):
     def __init__(self):
         super().__init__("", Object.RET_TYPE)
-
-class NormalVariant(Variant):
-    def __init__(self, name):
-        super().__init__(name, Object.NORMAL_TYPE)
-
-class RawVariant(Variant):
-    def __init__(self, name):
-        super().__init__(name, Object.RAW_TYPE)
-
-class InternalVariant(Variant):
-    def __init__(self, name):
-        super().__init__(name, Object.INTERNAL_TYPE)
 
 class CommandGenerator(object):
     RET_VARIANT = "@PYTSR"
@@ -352,7 +340,7 @@ class Translator(base.Translator):
         source = Source(self._cg)
 
         batch_function_name = Function(node.func.id).id_
-        function_name = NormalVariant(node.func.id).id_
+        function_name = Variant(node.func.id).id_
 
         arguments = ""
         for argument in node.args:
@@ -379,7 +367,7 @@ class Translator(base.Translator):
         elif type(value) == ast.Str:
             source.set_env_object(variant_name, value.s)
         elif type(value) == ast.Name:
-            source.set_env(variant_name, NormalVariant(value.id).value)
+            source.set_env(variant_name, Variant(value.id).value)
         elif type(value) == ast.Call:
             sub_source = self._gen_call(value)
             source.append(sub_source)
