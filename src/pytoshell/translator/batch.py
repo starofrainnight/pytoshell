@@ -17,6 +17,68 @@ class LocalContext(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._exit_func(exc_type, exc_val, exc_tb)
 
+class Object(object):
+    NORMAL_TYPE = "PYTSV"
+    INTERNAL_TYPE = "PYTSI"
+    RAW_TYPE = "PYTSA"
+    RET_TYPE = "PYTSR"
+
+    def __init__(self, name, type_):
+        self._name = name
+        self._type = type_
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def escaped_name(self):
+        return self._escape_name(self.name)
+
+    @property
+    def id_(self):
+        return "%s%s" % (self.type_, self._escape_name(name))
+
+    @property
+    def type_(self):
+        return self._type
+
+    @classmethod
+    def _escape_name(cls, name):
+        name = name.replace(".", "_")
+        chars = []
+        for c in name:
+            if c.isupper():
+                chars.append("#")
+            else:
+                c = c.upper()
+            chars.append(c)
+        return ''.join(chars)
+
+class Function(Object):
+    def __init__(self, name, type_):
+        super().__init__(name, type_)
+
+    @property
+    def id_(self):
+        return ":" + super().id_
+
+class Variant(Object):
+    def __init__(self, name, type_):
+        super().__init__(name, type_)
+
+    @property
+    def value(self):
+        return "%%%s%%" % self.id_
+
+    @property
+    def id_(self):
+        return "@" + super().id_
+
+class RetVariant(Variant):
+    def __init__(self):
+        super().__init__("", Object.RET_TYPE)
+
 class CommandGenerator(object):
     RET_VARIANT = "@PYTSR"
     NORMAL_PREFIX = "@PYTSV"
@@ -28,7 +90,7 @@ class CommandGenerator(object):
 
     def _new_raw_variant(self):
         self._variant_id += 1
-        return self.variant_from_name(str(self._variant_id), self.RAW_PREFIX)
+        return RawVariant(str(self._variant_id))
 
     @classmethod
     def _list_safe_append(cls, alist, value):
@@ -46,10 +108,6 @@ class CommandGenerator(object):
         return define_variant(cls, name, "")
 
     @classmethod
-    def get_value(cls, variant):
-        return "%%%s%%" % variant
-
-    @classmethod
     def get_function(cls, name):
         if not name.prefix("@"):
             name = cls.variant_from_name(name.replace(".", "_"))
@@ -57,58 +115,13 @@ class CommandGenerator(object):
         return name
 
     @classmethod
-    def escape_name(cls, name):
-        chars = []
-        for c in name:
-            if c.isupper():
-                chars.append("#")
-            else:
-                c = c.upper()
-            chars.append(c)
-        return ''.join(chars)
-
-    @classmethod
-    def unescape_name(cls, name):
-        chars = []
-        for i in range(len(name)):
-            c = name[i]
-            if c == "#":
-                i += 1
-                c = name[i].upper()
-            else:
-                c = c.lower()
-
-            chars.append(c)
-        return "".join(chars)
-
-    @classmethod
-    def variant_from_name(cls, name, prefix=NORMAL_PREFIX):
-        name = str(name)
-
-        if name.startswith("@"):
-            return name
-
-        return "%s%s" % (prefix, cls.escape_name(name))
-
-    @classmethod
-    def variant_to_name(cls, variant):
-        name = cls.unescape_name(variant)
-        prefixs = [cls.NORMAL_PREFIX, cls.INTERNAL_PREFIX]
-        for prefix in prefixs:
-            if name.startswith(prefix):
-                name = name[len(prefix):]
-            break
-
-        return name
-
-    @classmethod
-    def calcuate_expr(cls, expression, variant=RET_VARIANT):
-        return 'set /a "%s=%s" > NUL' % (variant, expression)
+    def calcuate_expr(cls, expression, variant=RetVariant()):
+        return 'set /a "%s=%s" > NUL' % (variant.id_, expression)
 
     @classmethod
     def return_(cls, value=None):
         if value is None:
-            value = cls.get_value(cls.RET_VARIANT)
+            value = RetVariant().value
         return cls.exec_all(cls.endlocal(cls), "exit /b " % value)
 
     @classmethod
@@ -129,7 +142,7 @@ class CommandGenerator(object):
 
     @classmethod
     def get_char(cls, variant, index):
-        return '%%%s:%s,1%%' % (varaint, index)
+        return '%%%s:%s,1%%' % (varaint.id_, index)
 
     @classmethod
     def pipe(cls, *args):
@@ -154,11 +167,11 @@ class CommandGenerator(object):
     @classmethod
     def get_type(cls, varaint):
         lines = []
-        lines.append(cls.undefine_variant(self.RET_VARIANT))
+        lines.append(cls.undefine_variant(RetVariant()))
         result = ""
         result += 'for /f "tokens=1 delims=@" %%%%a "'
-        result += ' in ("%s") ' % cls.get_value(variant)
-        result += ' do set "%s=str@%%%%a" ' % cls.RET_VARIANT
+        result += ' in ("%s") ' % varaint.value
+        result += ' do set "%s=str@%%%%a" ' % RetVariant().id_
         lines.append(result)
 
         return lines
@@ -170,12 +183,14 @@ class CommandGenerator(object):
         variant = cls.variant_from_name(parties[0])
         del parties[0]
 
-        static_function = cls.get_function(function)
-        dynamic_function = ':' + cls.get_value(variant) + "_" + cls.get_function(function)[len(cls.NORMAL_PREFIX):]
+        static_function = Function(function, Object.NORMAL_TYPE)
+        dynamic_function = ':%s_%s' % (
+            variant.value,
+            Function('.'.join(parties)).escaped_name)
         arguments = ' '.join(args)
 
         if_else_lines = cls.if_equal(
-            cls.get_value(variant), "",
+            variant.value, "",
             "call %s %s" % (static_function, arguments),
             "call %s %s" % (dynamic_function, arguments))
 
