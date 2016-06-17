@@ -291,7 +291,7 @@ class Translator(base.Translator):
             source.append(sub_source)
 
             temp_variant = source.create_temp_varaint()
-            source.add_initialize(self._cg.set_variant(temp_variant, self._ret_variant.value))
+            source.add_initialize(self._cg.set_variant(temp_variant, self._ret_variant))
             arguments += " \"%s\" " % temp_variant.value
 
         source.add_initialize(self._cg.if_equal(
@@ -304,15 +304,15 @@ class Translator(base.Translator):
     def _parse_value(self, value):
         source = Source(self._cg)
 
-        variant_name = self._ret_variant.id_
+        variant = self._ret_variant
 
         if type(value) == ast.Num:
-            source.add_initialize(self._cg.set_variant(variant_name, value.n))
+            source.add_initialize(self._cg.set_variant(variant, value.n))
         elif type(value) == ast.Str:
-            source.add_initialize(self._cg.set_variant(variant_name, value.s))
+            source.add_initialize(self._cg.set_variant(variant, value.s))
         elif type(value) == ast.Name:
             source.add_initialize(self._cg.set_variant(
-                variant_name, Variant(value.id).value, is_raw=True))
+                variant, Variant(value.id), is_raw=True))
         elif type(value) == ast.Call:
             sub_source = self._gen_call(value)
             source.append(sub_source)
@@ -322,13 +322,13 @@ class Translator(base.Translator):
             source.append(left_source)
             left_temp_variant = source.create_temp_varaint()
             source.add_initialize(self._cg.set_variant(
-                left_temp_variant, self._ret_variant.value))
+                left_temp_variant, self._ret_variant))
 
             right_source = self._parse_value(value.right)
             source.append(right_source)
             right_temp_variant = source.create_temp_varaint()
             source.add_initialize(self._cg.set_variant(
-                right_temp_variant, self._ret_variant.value))
+                right_temp_variant, self._ret_variant))
 
             operators = {
                 ast.Add:"+",
@@ -347,7 +347,7 @@ class Translator(base.Translator):
 
             source.add_initialize(self._cg.calcuate_expr(
                 "%s%s%s" % (left_temp_variant.id_, opt, right_temp_variant.id_),
-                variant=self._ret_variant))
+                variant=variant))
         return source
 
     def _parse_assign(self, name, value):
