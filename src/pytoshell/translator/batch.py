@@ -80,11 +80,6 @@ class RetVariant(Variant):
         super().__init__("", Object.RET_TYPE)
 
 class CommandGenerator(object):
-    RET_VARIANT = "@PYTSR"
-    NORMAL_PREFIX = "@PYTSV"
-    INTERNAL_PREFIX = "@PYTSI"
-    RAW_PREFIX = "@PYTSA"
-
     def __init__(self):
         self._variant_id = 0
 
