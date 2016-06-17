@@ -241,10 +241,10 @@ class Source(object):
         return LocalContext(self._temp_clearup_enter, self._temp_clearup_exit)
 
     def add_initialize(self, line):
-        self.front.append(line)
+        self._cg._list_safe_append(self.front, line)
 
     def add_finalize(self, line):
-        self.back.append(line)
+        self._cg._list_safe_append(self.back, line)
 
     def add_definition(self, source):
         if not isinstance(source, Source):
@@ -299,11 +299,11 @@ class Translator(base.Translator):
             source.add_initialize(self._cg.set_variant(temp_variant, self._ret_variant.value))
             arguments += " \"%s\" " % temp_variant.value
 
-        source.add_initialize("IF \"%s\"==\"\" (" % function_variant.value)
-        source.add_initialize("\tCALL %s %s" % (batch_function.name, arguments))
-        source.add_initialize(") ELSE (")
-        source.add_initialize("\tCALL %s %s" % (function_variant.value, arguments))
-        source.add_initialize(")")
+        source.add_initialize(self._cg.if_equal(
+            function_variant.value, "",
+            "\tcall %s %s" % (batch_function.name, arguments),
+            "\tcall %s %s" % (function_variant.value, arguments)
+        ))
         return source
 
     def _parse_value(self, value):
