@@ -49,12 +49,7 @@ class CommandGenerator(object):
         return name
 
     @classmethod
-    def variant_from_name(cls, name, prefix=NORMAL_PREFIX):
-        name = str(name)
-
-        if name.startswith("@"):
-            return name
-
+    def escape_name(cls, name):
         chars = []
         for c in name:
             if c.isupper():
@@ -62,12 +57,10 @@ class CommandGenerator(object):
             else:
                 c = c.upper()
             chars.append(c)
-
-        return "%s%s" % (prefix, "".join(chars))
+        return ''.join(chars)
 
     @classmethod
-    def variant_to_name(cls, variant):
-        name = variant
+    def unescape_name(cls, name):
         chars = []
         for i in range(len(name)):
             c = name[i]
@@ -78,7 +71,20 @@ class CommandGenerator(object):
                 c = c.lower()
 
             chars.append(c)
-        name = "".join(chars)
+        return "".join(chars)
+
+    @classmethod
+    def variant_from_name(cls, name, prefix=NORMAL_PREFIX):
+        name = str(name)
+
+        if name.startswith("@"):
+            return name
+
+        return "%s%s" % (prefix, cls.escape_name(name))
+
+    @classmethod
+    def variant_to_name(cls, variant):
+        name = cls.unescape_name(variant)
         prefixs = [cls.NORMAL_PREFIX, cls.INTERNAL_PREFIX]
         for prefix in prefixs:
             if name.startswith(prefix):
@@ -157,7 +163,7 @@ class CommandGenerator(object):
         del parties[0]
 
         static_function = cls.get_function(function)
-        dynamic_function = ':' + cls.get_value(variant) + cls.get_function(function)[len(cls.NORMAL_PREFIX):]
+        dynamic_function = ':' + cls.get_value(variant) + "_" + cls.get_function(function)[len(cls.NORMAL_PREFIX):]
         arguments = ' '.join(args)
 
         if_else_lines = cls.if_equal(
