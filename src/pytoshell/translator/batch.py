@@ -37,7 +37,7 @@ class Object(object):
 
     @property
     def id_(self):
-        return "%s%s" % (self.type_, self._escape_name(name))
+        return "%s%s" % (self.type_, self._escape_name(self.name))
 
     @property
     def type_(self):
@@ -78,6 +78,18 @@ class Variant(Object):
 class RetVariant(Variant):
     def __init__(self):
         super().__init__("", Object.RET_TYPE)
+
+class NormalVariant(Variant):
+    def __init__(self, name):
+        super().__init__(name, Object.NORMAL_TYPE)
+
+class RawVariant(Variant):
+    def __init__(self, name):
+        super().__init__(name, Object.RAW_TYPE)
+
+class InternalVariant(Variant):
+    def __init__(self, name):
+        super().__init__(name, Object.INTERNAL_TYPE)
 
 class CommandGenerator(object):
     RET_VARIANT = "@PYTSR"
@@ -205,9 +217,7 @@ class Source(object):
         self.back = []
         self.temp_finalize = []
         self.definitions = []
-
-    def get_ret_variant(self):
-        return "@PYTSR"
+        self._cg = CommandGenerator()
 
     def escape_variant_name(self, name):
         chars = []
@@ -335,6 +345,7 @@ class Translator(base.Translator):
         self._stack = Stack()
         self._object_id = 0
         self._cg = CommandGenerator()
+        self._ret_variant = RetVariant()
 
     def _new_object_id(self):
         self._object_id += 1
@@ -355,7 +366,7 @@ class Translator(base.Translator):
             source.append(sub_source)
 
             temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(temp_variant, "%%%s%%" % source.get_ret_variant())
+            source.set_env(temp_variant, self._ret_variant.value)
             arguments += " \"%%%s%%\" " % temp_variant
 
         source.add_initialize("IF \"%%%s%%\"==\"\" (" % function_name)
@@ -367,14 +378,14 @@ class Translator(base.Translator):
 
     def _parse_value(self, value):
         source = Source()
-        variant_name = source.get_ret_variant()
+        variant_name = self._ret_variant.name
 
         if type(value) == ast.Num:
             source.set_env_object(variant_name, value.n)
         elif type(value) == ast.Str:
             source.set_env_object(variant_name, value.s)
         elif type(value) == ast.Name:
-            source.set_env(variant_name, "%%%s%%" % source.get_variant(value.id))
+            source.set_env(variant_name, NormalVariant(value.id).value)
         elif type(value) == ast.Call:
             sub_source = self._gen_call(value)
             source.append(sub_source)
@@ -383,12 +394,12 @@ class Translator(base.Translator):
             left_source = self._parse_value(value.left)
             source.append(left_source)
             left_temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(left_temp_variant, "%%%s%%" % source.get_ret_variant())
+            source.set_env(left_temp_variant, self._ret_variant.value)
 
             right_source = self._parse_value(value.right)
             source.append(right_source)
             right_temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(right_temp_variant, "%%%s%%" % source.get_ret_variant())
+            source.set_env(right_temp_variant, self._ret_variant.value)
 
             operators = {
                 ast.Add:"+",
@@ -416,7 +427,7 @@ class Translator(base.Translator):
 
         sub_source = self._parse_value(value)
         source.append(sub_source)
-        source.set_env(name.id, "%%%s%%" % source.get_ret_variant())
+        source.set_env(name.id, self._ret_variant.value)
 
         return source
 
