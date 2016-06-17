@@ -121,10 +121,16 @@ class CommandGenerator(object):
         return 'set /a "%s=%s" > NUL' % (variant.id_, expression)
 
     @classmethod
+    def raw_return_(cls, value=None):
+        if value is None:
+            value = RetVariant().value
+        return "exit /b %s" % value
+
+    @classmethod
     def return_(cls, value=None):
         if value is None:
             value = RetVariant().value
-        return cls.exec_all(cls.endlocal(cls), "exit /b " % value)
+        return cls.exec_all(cls.end_context(), "exit /b %s" % value)
 
     @classmethod
     def begin_context(cls):
@@ -132,7 +138,7 @@ class CommandGenerator(object):
 
     @classmethod
     def end_context(cls):
-        return 'endlocal & SET "@PYTSR=%@PYTSR%"'
+        return cls.exec_all('endlocal', 'set "@PYTSR=%@PYTSR%"')
 
     @classmethod
     def comment(cls, text):
@@ -380,7 +386,7 @@ class Translator(base.Translator):
             if isinstance(node, ast.FunctionDef):
                 new_source = Source(self._cg)
                 new_source.add_initialize(Function(node.name).id_)
-                new_source.add_finalize("EXIT /B %ERRORLEVEL%")
+                new_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
             else:
                 new_source = source
 
@@ -434,7 +440,7 @@ class Translator(base.Translator):
             lines = []
             lines += source.front
             lines += source.back
-            lines.append("EXIT /B %ERRORLEVEL%")
+            lines.append(self._cg.raw_return_("%ERRORLEVEL%"))
 
             for sub_source in source.definitions:
                 lines += sub_source.front
