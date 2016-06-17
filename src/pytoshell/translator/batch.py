@@ -103,8 +103,8 @@ class CommandGenerator(object):
             alist += value
 
     @classmethod
-    def set_variant(cls, name, value):
-        if not name.startswith(Object.RAW_TYPE):
+    def set_variant(cls, name, value, enabled_type_info=True):
+        if (not name.startswith(Object.RAW_TYPE)) and enabled_type_info:
             value = "%s@%s" % (type(value).__name__, value)
         return 'set "%s=%s"' % (name, value)
 
@@ -333,9 +333,10 @@ class Translator(base.Translator):
         if type(value) == ast.Num:
             source.add_initialize(self._cg.set_variant(variant_name, value.n))
         elif type(value) == ast.Str:
-            source.set_env_object(variant_name, value.s)
+            source.add_initialize(self._cg.set_variant(variant_name, value.s))
         elif type(value) == ast.Name:
-            source.set_env(variant_name, Variant(value.id).value)
+            source.add_initialize(self._cg.set_variant(
+                variant_name, Variant(value.id).value, enabled_type_info=False))
         elif type(value) == ast.Call:
             sub_source = self._gen_call(value)
             source.append(sub_source)
