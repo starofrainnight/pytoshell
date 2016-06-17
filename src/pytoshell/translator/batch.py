@@ -450,6 +450,7 @@ class Translator(base.Translator):
 
         site_module_file = open(os.path.join(self.get_module_path(), "site.bat"), "r")
         with site_module_file:
-            lines + site_module_file.readlines()
-
+            for line in site_module_file:
+                lines.append(line.strip())
+                
         return "\n".join(lines)
