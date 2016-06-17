@@ -334,6 +334,7 @@ class Translator(base.Translator):
     def __init__(self):
         self._stack = Stack()
         self._object_id = 0
+        self._cg = CommandGenerator()
 
     def _new_object_id(self):
         self._object_id += 1
