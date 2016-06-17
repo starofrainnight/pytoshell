@@ -103,7 +103,9 @@ class CommandGenerator(object):
             alist += value
 
     @classmethod
-    def define_variant(cls, name, value):
+    def define_variant(cls, name, value, is_with_type=False):
+        if is_with_type:
+            value = "%s@%s" % (type(value).__name__, value)
         return 'set "%s=%s"' % (name, value)
 
     @classmethod
