@@ -56,7 +56,7 @@ class Object(object):
         return ''.join(chars)
 
 class Function(Object):
-    def __init__(self, name, type_):
+    def __init__(self, name, type_=Object.NORMAL_TYPE):
         super().__init__(name, type_)
 
     @property
@@ -195,7 +195,7 @@ class CommandGenerator(object):
         variant = cls.variant_from_name(parties[0])
         del parties[0]
 
-        static_function = Function(function, Object.NORMAL_TYPE)
+        static_function = Function(function)
         dynamic_function = ':%s_%s' % (
             variant.value,
             Function('.'.join(parties)).escaped_name)
