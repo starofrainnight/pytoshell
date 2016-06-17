@@ -301,7 +301,7 @@ class Translator(base.Translator):
 
         source.add_initialize(self._cg.if_equal(
             function_variant.value, "",
-            "\tcall %s %s" % (batch_function.name, arguments),
+            "\tcall %s %s" % (batch_function.id_, arguments),
             "\tcall %s %s" % (function_variant.value, arguments)
         ))
         return source
