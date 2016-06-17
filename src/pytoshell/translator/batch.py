@@ -24,7 +24,7 @@ class Object(object):
     RET_TYPE = "PYTSR"
 
     def __init__(self, name, type_):
-        self._name = name
+        self._name = str(name)
         self._type = type_
 
     @property
@@ -88,9 +88,12 @@ class CommandGenerator(object):
     def __init__(self):
         self._variant_id = 0
 
-    def _new_raw_variant(self):
+    def _new_variant_id(self):
         self._variant_id += 1
-        return RawVariant(str(self._variant_id))
+        return self._variant_id
+
+    def _new_raw_variant(self):
+        return RawVariant(self._new_variant_id(), self.RAW_TYPE)
 
     @classmethod
     def _list_safe_append(cls, alist, value):
@@ -207,39 +210,8 @@ class Source(object):
         self.definitions = []
         self._cg = command_generator
 
-    def escape_variant_name(self, name):
-        chars = []
-        for c in name:
-            if c.isupper():
-                chars.append("#")
-            else:
-                c = c.upper()
-            chars.append(c)
-        return "".join(chars)
-
-    def unescape_variant_name(self, name):
-        chars = []
-        for i in range(len(name)):
-            c = name[i]
-            if c == "#":
-                i += 1
-                c = name[i].upper()
-            else:
-                c = c.lower()
-
-            chars.append(c)
-        return "".join(chars)
-
-    def get_variant(self, name):
-        name = str(name)
-
-        if name.startswith("@"):
-            return name
-
-        return "@PYTSV%s" % self.escape_variant_name(name)
-
     def create_temp_varaint(self, name):
-        name = self.get_variant(name)
+        name = Variant(name).id_
         self.temp_finalize.insert(0, self.gen_set_env(name))
         return name
 
@@ -287,7 +259,8 @@ class Source(object):
         if do_math:
             opt = "/a"
 
-        name = self.get_variant(name)
+        if not name.startswith("@"):
+            name = Variant(name).id_
 
         return 'SET %s "%s=%s"' % (opt, name, value)
 
