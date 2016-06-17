@@ -17,6 +17,118 @@ class LocalContext(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._exit_func(exc_type, exc_val, exc_tb)
 
+class CommandGenerator(object):
+    RET_VARIANT = "@PYTSR"
+    NORMAL_PREFIX = "@PYTSV"
+    INTERNAL_PREFIX = "@PYTSI"
+
+    @classmethod
+    def define_variant(cls, name, value):
+        return 'set "%s=%s"' % (name, value)
+
+    @classmethod
+    def undefine_variant(cls, name):
+        return define_variant(cls, name, "")
+
+    @classmethod
+    def get_value(cls, variant):
+        return "%%%s%%" % variant
+
+    @classmethod
+    def encode_variant(cls, name, prefix=NORMAL_PREFIX):
+        name = str(name)
+
+        if name.startswith("@"):
+            return name
+
+        chars = []
+        for c in name:
+            if c.isupper():
+                chars.append("#")
+            else:
+                c = c.upper()
+            chars.append(c)
+
+        return "%s%s" % (prefix, "".join(chars))
+
+    @classmethod
+    def decode_variant(cls, variant):
+        name = variant
+        chars = []
+        for i in range(len(name)):
+            c = name[i]
+            if c == "#":
+                i += 1
+                c = name[i].upper()
+            else:
+                c = c.lower()
+
+            chars.append(c)
+        name = "".join(chars)
+        prefixs = [cls.NORMAL_PREFIX, cls.INTERNAL_PREFIX]
+        for prefix in prefixs:
+            if name.startswith(prefix):
+                name = name[len(prefix):]
+            break
+
+        return name
+
+    @classmethod
+    def calcuate_expr(cls, expression, variant=RET_VARIANT):
+        return 'set /a "%s=%s" > NUL' % (variant, expression)
+
+    @classmethod
+    def return_(cls, value=None):
+        if value is None:
+            value = cls.get_value(cls.RET_VARIANT)
+        return cls.exec_all(cls.endlocal(cls), "exit /b " % value)
+
+    @classmethod
+    def begin_context(cls):
+        return "setlocal"
+
+    @classmethod
+    def end_context(cls):
+        return "endlocal"
+
+    @classmethod
+    def comment(cls, text):
+        return "::%s" % text
+
+    @classmethod
+    def exec_all(cls, *args):
+        return '&'.join(args)
+
+    @classmethod
+    def get_char(cls, variant, index):
+        return '%%%s:%s,1%%' % (varaint, index)
+
+    @classmethod
+    def pipe(cls, *args):
+        return '|'.join(args)
+
+    @classmethod
+    def if_equal(cls, text0, text1, if_block, else_block):
+        lines = []
+        lines.append("if %s*==%s* (" % (text0, text1))
+        if isinstance(if_block, six.string_types):
+            lines.append(if_block)
+        else:
+            lines += if_block
+        lines.append(") else (")
+        if isinstance(else_block, six.string_types):
+          lines.append(else_block)
+        else:
+          lines += else_block
+        lines.append(")")
+        return lines
+
+    @classmethod
+    def invoke(cls, varaint, function, *args):
+        lines = []
+        lines.append("")
+        return
+
 class Source(object):
     def __init__(self):
         self.front = []
@@ -24,7 +136,7 @@ class Source(object):
         self.temp_finalize = []
         self.definitions = []
 
-    def get_ret_varaint(self):
+    def get_ret_variant(self):
         return "@PYTSR"
 
     def escape_variant_name(self, name):
@@ -172,7 +284,7 @@ class Translator(base.Translator):
             source.append(sub_source)
 
             temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(temp_variant, "%%%s%%" % source.get_ret_varaint())
+            source.set_env(temp_variant, "%%%s%%" % source.get_ret_variant())
             arguments += " \"%%%s%%\" " % temp_variant
 
         source.add_initialize("IF \"%%%s%%\"==\"\" (" % function_name)
@@ -184,7 +296,7 @@ class Translator(base.Translator):
 
     def _parse_value(self, value):
         source = Source()
-        variant_name = source.get_ret_varaint()
+        variant_name = source.get_ret_variant()
 
         if type(value) == ast.Num:
             source.set_env_object(variant_name, value.n)
@@ -200,12 +312,12 @@ class Translator(base.Translator):
             left_source = self._parse_value(value.left)
             source.append(left_source)
             left_temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(left_temp_variant, "%%%s%%" % source.get_ret_varaint())
+            source.set_env(left_temp_variant, "%%%s%%" % source.get_ret_variant())
 
             right_source = self._parse_value(value.right)
             source.append(right_source)
             right_temp_variant = source.create_temp_varaint(self._new_object_id())
-            source.set_env(right_temp_variant, "%%%s%%" % source.get_ret_varaint())
+            source.set_env(right_temp_variant, "%%%s%%" % source.get_ret_variant())
 
             operators = {
                 ast.Add:"+",
@@ -233,7 +345,7 @@ class Translator(base.Translator):
 
         sub_source = self._parse_value(value)
         source.append(sub_source)
-        source.set_env(name.id, "%%%s%%" % source.get_ret_varaint())
+        source.set_env(name.id, "%%%s%%" % source.get_ret_variant())
 
         return source
 
