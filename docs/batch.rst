@@ -21,6 +21,8 @@ Prefixs
 
 * @PYTSR, Return variant
 * @PYTSV, Normal Variants
+* @PYTSI, Internal Variants
+* @PYTSA, Raw Variants (Contained values without type)
 
 Name
 ---------------------
