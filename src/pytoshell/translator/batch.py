@@ -75,6 +75,18 @@ class Variant(Object):
     def id_(self):
         return "@" + super().id_
 
+    @property
+    def type_info(self):
+        return TypeInfoVariant(self.name, self.type_)
+
+class TypeInfoVariant(Variant):
+    def __init__(self, name, type_=Object.NORMAL_TYPE):
+        if name.endswith("-t"):
+            name = "-t"
+        else:
+            name += "-t"
+        super().__init__(name, type_)
+
 class RetVariant(Variant):
     def __init__(self):
         super().__init__("", Object.RET_TYPE)
@@ -99,18 +111,27 @@ class CommandGenerator(object):
 
     @classmethod
     def set_variant(cls, name, value, is_raw=False):
+        variant = None
         if isinstance(name, Variant):
-            name = name.id_
+            variant = name
+            variant_id = variant.id_
+            variant_type_id = variant.type_info.id_
+        else:
+            variant_id = name
 
         if isinstance(value, Variant):
-            value = value.value
+            value_value = value.value
             is_raw = True
+            value_type_info_value = value.type_info.value
+        else:
+            value_value = value
+            value_type_info_value = type(value).__name__
 
-        if (name.startswith("@")
-            and (not name[1:].startswith(Object.RAW_TYPE))
-            and (not is_raw)):
-            value = "%s@%s" % (type(value).__name__, value)
-        return 'set "%s=%s"' % (name, value)
+        command = 'set "%s=%s"' % (variant_id, value_value)
+        if not variant is None:
+            command += ' & set "%s=%s"' % (variant_type_id, value_type_info_value)
+
+        return command
 
     @classmethod
     def unset_variant(cls, name):
@@ -138,7 +159,7 @@ class CommandGenerator(object):
 
     @classmethod
     def end_context(cls):
-        return cls.exec_all('endlocal', 'set "@PYTSR=%@PYTSR%"')
+        return cls.exec_all('endlocal', 'set "@PYTSR=%@PYTSR%"', 'set "@PYTSR-T=%@PYTSR-T%"')
 
     @classmethod
     def comment(cls, text):
