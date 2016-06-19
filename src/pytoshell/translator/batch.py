@@ -146,7 +146,7 @@ class CommandGenerator(object):
 
     @classmethod
     def exec_all(cls, *args):
-        return '&'.join(args)
+        return ' & '.join(args)
 
     @classmethod
     def get_char(cls, variant, index):
@@ -154,7 +154,7 @@ class CommandGenerator(object):
 
     @classmethod
     def pipe(cls, *args):
-        return '|'.join(args)
+        return ' | '.join(args)
 
     @classmethod
     def if_equal(cls, text0, text1, if_block, else_block):
@@ -452,5 +452,5 @@ class Translator(base.Translator):
         with site_module_file:
             for line in site_module_file:
                 lines.append(line.strip())
-                
+
         return "\n".join(lines)
