@@ -18,14 +18,14 @@ class LocalContext(object):
         self._exit_func(exc_type, exc_val, exc_tb)
 
 class Object(object):
-    NORMAL_TYPE = "PYTSV"
-    INTERNAL_TYPE = "PYTSI"
-    RAW_TYPE = "PYTSA"
-    RET_TYPE = "PYTSR"
+    TAG_NORMAL = "PYTSV"
+    TAG_INTERNAL = "PYTSI"
+    TAG_RAW = "PYTSA"
+    TAG_RET = "PYTSR"
 
-    def __init__(self, name, type_):
+    def __init__(self, name, tag):
         self._name = str(name)
-        self._type = type_
+        self._tag = tag
 
     @property
     def name(self):
@@ -37,11 +37,11 @@ class Object(object):
 
     @property
     def id_(self):
-        return "%s%s" % (self.type_, self._escape_name(self.name))
+        return "%s%s" % (self.tag, self._escape_name(self.name))
 
     @property
-    def type_(self):
-        return self._type
+    def tag(self):
+        return self._tag
 
     @classmethod
     def _escape_name(cls, name):
@@ -56,16 +56,16 @@ class Object(object):
         return ''.join(chars)
 
 class Function(Object):
-    def __init__(self, name, type_=Object.NORMAL_TYPE):
-        super().__init__(name, type_)
+    def __init__(self, name, tag=Object.TAG_NORMAL):
+        super().__init__(name, tag)
 
     @property
     def id_(self):
         return ":" + super().id_
 
 class Variant(Object):
-    def __init__(self, name, type_=Object.NORMAL_TYPE):
-        super().__init__(name, type_)
+    def __init__(self, name, tag=Object.TAG_NORMAL):
+        super().__init__(name, tag)
 
     @property
     def value(self):
@@ -77,19 +77,19 @@ class Variant(Object):
 
     @property
     def type_info(self):
-        return TypeInfoVariant(self.name, self.type_)
+        return TypeInfoVariant(self.name, self.tag)
 
 class TypeInfoVariant(Variant):
-    def __init__(self, name, type_=Object.NORMAL_TYPE):
+    def __init__(self, name, tag=Object.TAG_NORMAL):
         if name.endswith("-t"):
             name = "-t"
         else:
             name += "-t"
-        super().__init__(name, type_)
+        super().__init__(name, tag)
 
 class RetVariant(Variant):
     def __init__(self):
-        super().__init__("", Object.RET_TYPE)
+        super().__init__("", Object.TAG_RET)
 
 class CommandGenerator(object):
     def __init__(self):
@@ -100,7 +100,7 @@ class CommandGenerator(object):
         return self._variant_id
 
     def _new_raw_variant(self):
-        return Variant(self._new_variant_id(), Object.RAW_TYPE)
+        return Variant(self._new_variant_id(), Object.TAG_RAW)
 
     @classmethod
     def _list_safe_append(cls, alist, value):
