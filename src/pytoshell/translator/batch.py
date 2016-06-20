@@ -105,6 +105,10 @@ class ArgumentVariant(Variant):
     def __init__(self, name, tag=Object.TAG_ARGUMENT):
         super().__init__(name, tag)
 
+    @property
+    def value(self):
+        return "%%%s%%" % super().value
+
 class RetVariant(Variant):
     def __init__(self):
         super().__init__("", Object.TAG_RET)
@@ -227,6 +231,13 @@ class CommandGenerator(object):
         return lines
 
     @classmethod
+    def get_value(cls, varaint):
+        if isinstance(varaint, Variant):
+            return variant.value
+
+        return "%%%s%%" % variant
+
+    @classmethod
     def invoke(cls, function, *args):
         lines = []
         parties = function.split(".")
@@ -234,7 +245,7 @@ class CommandGenerator(object):
         del parties[0]
 
         static_function = Function(function)
-        dynamic_function = ':%s_%s' % (
+        dynamic_function = ':%s.%s' % (
             variant.value,
             Function('.'.join(parties)).escaped_name)
         arguments = ' '.join(args)
