@@ -46,7 +46,6 @@ class Object(object):
 
     @classmethod
     def _escape_name(cls, name):
-        name = name.replace(".", "_")
         chars = []
         for c in name:
             if c.isupper():
@@ -55,6 +54,20 @@ class Object(object):
                 c = c.upper()
             chars.append(c)
         return ''.join(chars)
+
+    @classmethod
+    def _unescape_name(cls, name):
+        chars = []
+        for i in range(len(name)):
+            c = name[i]
+            if c == "#":
+                i += 1
+                c = name[i].upper()
+            else:
+                c = c.lower()
+
+            chars.append(c)
+        return "".join(chars)
 
 class Function(Object):
     def __init__(self, name, tag=Object.TAG_NORMAL):
