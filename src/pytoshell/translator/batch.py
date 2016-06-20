@@ -19,6 +19,7 @@ class LocalContext(object):
 
 class Object(object):
     TAG_NORMAL = "PYTSV"
+    TAG_ARGUMENT = "PYTSU"
     TAG_INTERNAL = "PYTSI"
     TAG_RAW = "PYTSA"
     TAG_RET = "PYTSR"
@@ -85,6 +86,10 @@ class TypeInfoVariant(Variant):
             name = "-t"
         else:
             name += "-t"
+        super().__init__(name, tag)
+
+class ArgumentVariant(Variant):
+    def __init__(self, name, tag=Object.TAG_ARGUMENT):
         super().__init__(name, tag)
 
 class RetVariant(Variant):
