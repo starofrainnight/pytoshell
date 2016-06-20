@@ -65,9 +65,6 @@ class Function(Object):
         return ":" + super().id_
 
 class Variant(Object):
-    RET = RetVariant()
-    ARGUMENT_COUNT = ArgumentVariant("count")
-
     def __init__(self, name, tag=Object.TAG_NORMAL):
         super().__init__(name, tag)
 
@@ -238,6 +235,10 @@ class CommandGenerator(object):
         _list_safe_append(lines, if_else_lines)
 
         return
+
+class Constants(object):
+    RET = RetVariant()
+    ARGUMENT_COUNT = ArgumentVariant("count")
 
 class Source(object):
     def __init__(self, command_generator):
