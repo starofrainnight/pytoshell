@@ -123,6 +123,9 @@ class CommandGenerator(object):
             value_value = value.value
             is_raw = True
             value_type_info_value = value.type_info.value
+        elif value is None:
+            value_value = ""
+            value_type_info_value = ""
         else:
             value_value = value
             value_type_info_value = type(value).__name__
@@ -135,7 +138,7 @@ class CommandGenerator(object):
 
     @classmethod
     def unset_variant(cls, name):
-        return cls.set_variant(name, "", is_raw=True)
+        return cls.set_variant(name, None, is_raw=True)
 
     @classmethod
     def calcuate_expr(cls, expression, variant=RetVariant()):
