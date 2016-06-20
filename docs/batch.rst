@@ -20,6 +20,7 @@ Prefixs
 ---------------------
 
 * @PYTSR, Return variant
+* @PYTSU, Arguments variant
 * @PYTSV, Normal Variants
 * @PYTSI, Internal Variants
 * @PYTSA, Raw Variants (Contained values without type)
@@ -49,6 +50,13 @@ Only support basic types:
 * tuple
 * function
 * method
+
+Special Variants
+---------------------
+
+# @PYTSR, Return varaint
+* @PYTSUCOUNT, Argument count
+* @PYTSUX, Arguments, for example : @PYTSU0, @PYTSU1 ... @PYTSUX
 
 Module
 =====================
