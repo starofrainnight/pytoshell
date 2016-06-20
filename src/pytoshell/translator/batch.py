@@ -65,6 +65,9 @@ class Function(Object):
         return ":" + super().id_
 
 class Variant(Object):
+    RET = RetVariant()
+    ARGUMENT_COUNT = ArgumentVariant("count")
+
     def __init__(self, name, tag=Object.TAG_NORMAL):
         super().__init__(name, tag)
 
