@@ -240,25 +240,13 @@ class CommandGenerator(object):
     @classmethod
     def invoke(cls, function, *args):
         lines = []
-        parties = function.split(".")
-        variant = cls.variant_from_name(parties[0])
-        del parties[0]
 
-        static_function = Function(function)
-        dynamic_function = ':%s.%s' % (
-            variant.value,
-            Function('.'.join(parties)).escaped_name)
+        afunction = Function(function)
         arguments = ' '.join(args)
 
-        if_else_lines = cls.if_equal(
-            variant.value, "",
-            "call %s %s" % (static_function, arguments),
-            "call %s %s" % (dynamic_function, arguments))
+        lines.append("call %s %s" % (afunction.id_, arguments))
 
-        _list_safe_append(lines, cls.get_type(variant))
-        _list_safe_append(lines, if_else_lines)
-
-        return
+        return lines
 
 class Constants(object):
     RET = RetVariant()
@@ -348,16 +336,16 @@ class Translator(base.Translator):
 
         batch_function = Function(node.func.id)
 
-        arguments = ""
+        arguments = []
         for argument in node.args:
             sub_source = self._parse_value(argument)
             source.append(sub_source)
 
             temp_variant = source.create_temp_varaint()
             source.add_initialize(self._cg.set_variant(temp_variant, self._ret_variant))
-            arguments += " \"%s\" " % temp_variant.value
+            arguments.append(temp_variant.id_)
 
-        source.add_initialize("call %s %s" % (batch_function.id_, arguments))
+        source.add_initialize(self._cg.invoke(node.func.id, *arguments))
         return source
 
     def _parse_value(self, value):
