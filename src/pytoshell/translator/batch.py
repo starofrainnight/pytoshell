@@ -238,10 +238,11 @@ class CommandGenerator(object):
         return "%%%s%%" % variant
 
     @classmethod
-    def invoke(cls, function, *args):
+    def invoke(cls, afunction, *args):
         lines = []
 
-        afunction = Function(function)
+        if not isinstance(afunction, Function):
+            afunction = Function(function)
         arguments = ' '.join(args)
 
         lines.append("call %s %s" % (afunction.id_, arguments))
@@ -377,23 +378,25 @@ class Translator(base.Translator):
                 right_temp_variant, self._ret_variant))
 
             operators = {
-                ast.Add:"+",
-                ast.Sub:"-",
-                ast.Mult:"*",
-                ast.Div:"/",
-                ast.Mod:"%",
-                ast.LShift:"<<",
-                ast.RShift:">>",
-                ast.BitOr:"|",
-                ast.BitAnd:"&",
-                ast.BitXor:"^",
+                ast.Add:["+", "__add__"],
+                ast.Sub:["-", "__sub__"],
+                ast.Mult:["*", "__mul__"],
+                ast.Div:["/", "__truediv__"],
+                ast.Mod:["%", "__mod__"],
+                ast.LShift:["<<", "__lshift__"],
+                ast.RShift:[">>", "__rshift__"],
+                ast.BitOr:["|", "__or__"],
+                ast.BitAnd:["&", "__and__"],
+                ast.BitXor:["^", "__xor__"],
             }
 
-            opt = operators[type(value.op)]
-
-            source.add_initialize(self._cg.calcuate_expr(
-                "%s%s%s" % (left_temp_variant.id_, opt, right_temp_variant.id_),
-                variant=variant))
+            opt = operators[type(value.op)][0]
+            opt_name = operators[type(value.op)][1]
+            afunction = Function("%%%s%%.%s" % (left_temp_variant.type_info.id_.lower(), opt_name))
+            source.add_initialize(self._cg.invoke(
+                afunction,
+                left_temp_variant.id_, right_temp_variant.id_,
+            ))
         return source
 
     def _parse_assign(self, name, value):
@@ -490,6 +493,8 @@ class Translator(base.Translator):
             lines.append("@echo off")
             lines += source.front
             lines += source.back
+
+            lines.append("del /q/s __PYTSTEMP_EXEC.BAT > NUL")
             lines.append(self._cg.raw_return_("%ERRORLEVEL%"))
 
             for sub_source in source.definitions:

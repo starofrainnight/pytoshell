@@ -1,15 +1,51 @@
 :: The basic library included all routines that needs by pytoshell
 
-:: Get the type of an object
-:@pytsitype object
-setlocal
-call :@pytsistr_remove_quotes %1
-set "@PYTSV-OBJECT=%@PYTSR%"
-for /f "tokens=1 delims=@" %%a in ("%@PYTSV-OBJECT%") do set "@PYTSR=%%a"
-endlocal & set "@PYTSR=%@PYTSR%"
+:PYTSVint.__add__
+set /a "@PYTSR=%1 + %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
 exit /b %ERRORLEVEL%
 
-:@pytsistr_remove_quotes self
-for /f "useback tokens=*" %%a in ('%1') do set "@PYTSR=%%~a"
-endlocal & set "@PYTSR=%@PYTSR%"
+:PYTSVint.__sub__
+set /a "@PYTSR=%1 - %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+exit /b %ERRORLEVEL%
+
+:PYTSVint.__mul__
+set /a "@PYTSR=%1 * %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+exit /b %ERRORLEVEL%
+
+:PYTSVint.__truediv__
+set /a "@PYTSR=%1 / %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+exit /b %ERRORLEVEL%
+
+:PYTSVint.__mod__
+set /a "@PYTSR=%1 % %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+exit /b %ERRORLEVEL%
+
+:PYTSVint.__lshift__
+set /a "@PYTSR=%1 << %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+exit /b %ERRORLEVEL%
+
+:PYTSVint.__rshift__
+set /a "@PYTSR=%1 >> %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+exit /b %ERRORLEVEL%
+
+:PYTSVint.__or__
+set /a "@PYTSR=%1 | %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+exit /b %ERRORLEVEL%
+
+:PYTSVint.__and__
+set /a "@PYTSR=%1 & %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+exit /b %ERRORLEVEL%
+
+:PYTSVint.__xor__
+set /a "@PYTSR=%1 ^ %2"
+echo set "@PYTSR-T=%%%1-T%%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
 exit /b %ERRORLEVEL%
