@@ -487,6 +487,7 @@ class Translator(base.Translator):
         with self._stack:
             source = self._parse_node(node)
             lines = []
+            lines.append("@echo off")
             lines += source.front
             lines += source.back
             lines.append(self._cg.raw_return_("%ERRORLEVEL%"))
