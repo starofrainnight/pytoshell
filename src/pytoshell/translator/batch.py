@@ -402,9 +402,16 @@ class Translator(base.Translator):
     def _parse_assign(self, name, value):
         source = Source(self._cg)
 
-        sub_source = self._parse_value(value)
-        source.append(sub_source)
-        source.add_initialize(self._cg.set_variant(Variant(name.id), self._ret_variant))
+        if type(value) == ast.Num:
+            source.add_initialize(self._cg.set_variant(Variant(name.id), value.n))
+        elif type(value) == ast.Str:
+            source.add_initialize(self._cg.set_variant(Variant(name.id), value.s))
+        elif type(value) == ast.Name:
+            source.add_initialize(self._cg.set_variant(Variant(name.id), Variant(value.id)))
+        else:
+            sub_source = self._parse_value(value)
+            source.append(sub_source)
+            source.add_initialize(self._cg.set_variant(Variant(name.id), self._ret_variant))
 
         return source
 
