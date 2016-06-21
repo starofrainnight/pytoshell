@@ -347,7 +347,6 @@ class Translator(base.Translator):
         source = Source(self._cg)
 
         batch_function = Function(node.func.id)
-        function_variant = Variant(node.func.id)
 
         arguments = ""
         for argument in node.args:
@@ -358,11 +357,7 @@ class Translator(base.Translator):
             source.add_initialize(self._cg.set_variant(temp_variant, self._ret_variant))
             arguments += " \"%s\" " % temp_variant.value
 
-        source.add_initialize(self._cg.if_equal(
-            function_variant.value, "",
-            "\tcall %s %s" % (batch_function.id_, arguments),
-            "\tcall %s %s" % (function_variant.value, arguments)
-        ))
+        source.add_initialize("call %s %s" % (batch_function.id_, arguments))
         return source
 
     def _parse_value(self, value):
