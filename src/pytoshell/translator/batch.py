@@ -437,6 +437,10 @@ class Translator(base.Translator):
                         value = node.value.elts[i]
                         sub_source = self._parse_assign(avariable, value)
                         source.append(sub_source)
+        elif type(node) == ast.Expr:
+            with source.start_temp_clearup():
+                sub_source = self._parse_value(node.value)
+                source.append(sub_source)
 
         if "body" in node.__dict__:
 
