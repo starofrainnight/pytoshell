@@ -377,6 +377,7 @@ class Translator(base.Translator):
             sub_source = self._gen_call(value)
             source.append(sub_source)
         elif type(value) == ast.FunctionDef:
+            source.add_initialize("") # Add a new line before function definition
             source.add_initialize(Function(value.name).id_)
             for an_arg in value.args.args:
                 an_arg_variant = Variant(an_arg.arg)
