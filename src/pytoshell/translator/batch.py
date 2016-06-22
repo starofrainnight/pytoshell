@@ -404,6 +404,8 @@ class Translator(base.Translator):
                 afunction,
                 left_temp_variant.id_, right_temp_variant.id_,
             ))
+            if variant.tag != Object.TAG_RET:
+                source.add_initialize(self._cg.set_variant(variant, self._ret_variant))
         return source
 
     def _parse_assign(self, name, value):
