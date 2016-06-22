@@ -150,6 +150,8 @@ class CommandGenerator(object):
             value_type_info_value = ""
         else:
             value_value = value
+            if isinstance(value_value, six.string_types):
+                value_value = value_value.replace("%", "%%")
             value_type_info_value = type(value).__name__
 
         command = 'set "%s=%s"' % (variant_id, value_value)
@@ -174,9 +176,17 @@ class CommandGenerator(object):
 
     @classmethod
     def return_(cls, value=None):
+        lines = []
+
         if value is None:
-            value = RetVariant().value
-        return cls.exec_all(cls.end_context(), "exit /b %s" % value)
+            value = RetVariant()
+
+        if value.tag != Object.TAG_RET:
+            cls._list_safe_append(lines, cls.set_variant(RetVariant(), value))
+
+        cls._list_safe_append(lines, cls.exec_all(cls.end_context(), "exit /b %ERRORLEVEL%"))
+
+        return lines
 
     @classmethod
     def begin_context(cls):
@@ -406,6 +416,12 @@ class Translator(base.Translator):
             ))
             if variant.tag != Object.TAG_RET:
                 source.add_initialize(self._cg.set_variant(variant, self._ret_variant))
+        elif type(value) == ast.Return:
+            if value.value is not None:
+                sub_source = self._parse_value(value.value)
+                source.append(sub_source)
+            source.add_initialize(self._cg.return_())
+
         return source
 
     def _parse_assign(self, name, value):
@@ -442,6 +458,10 @@ class Translator(base.Translator):
         elif type(node) == ast.Expr:
             with source.start_temp_clearup():
                 sub_source = self._parse_value(node.value)
+                source.append(sub_source)
+        elif type(node) == ast.Return:
+            with source.start_temp_clearup():
+                sub_source = self._parse_value(node)
                 source.append(sub_source)
 
         if "body" in node.__dict__:
