@@ -363,6 +363,14 @@ class Translator(base.Translator):
         elif type(value) == ast.Call:
             sub_source = self._gen_call(value)
             source.append(sub_source)
+        elif type(value) == ast.FunctionDef:
+            source.add_initialize(Function(value.name).id_)
+            for an_arg in value.args.args:
+                an_arg_variant = Variant(an_arg.arg)
+                source.add_initialize('set "%s=%%%%1%%" & set "%s=%%%%1%%"' % (
+                    an_arg_variant.id_, an_arg_variant.type_info.id_))
+                source.add_initialize('shift')
+            source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
         elif type(value) == ast.BinOp:
 
             left_source = self._parse_value(value.left)
@@ -438,14 +446,7 @@ class Translator(base.Translator):
         if "body" in node.__dict__:
 
             if isinstance(node, ast.FunctionDef):
-                new_source = Source(self._cg)
-                new_source.add_initialize(Function(node.name).id_)
-                for an_arg in node.args.args:
-                    an_arg_variant = Variant(an_arg.arg)
-                    new_source.add_initialize('set "%s=%%%%1%%" & set "%s=%%%%1%%"' % (
-                        an_arg_variant.id_, an_arg_variant.type_info.id_))
-                    new_source.add_initialize('shift')
-                new_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
+                new_source = self._parse_value(node)
             else:
                 new_source = source
 
