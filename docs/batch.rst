@@ -106,3 +106,7 @@ Feature Supported
  Only support basic syntax within only one argument : print("a string with %s" % variant)
 
 * len()
+
+* string formatting
+
+ Only support "%s" 

@@ -46,6 +46,40 @@ setlocal
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
+REM String formating
+:PYTSVstr.__mod__
+setlocal
+    echo set "@PYTSRTEMP_STR=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    echo set "@PYTSRTEMP_REPLACEMENT=%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    set "@PYTSRTEMP_CHAR="
+    set "@PYTSRTEMP_LAST_CHAR="
+    set "@PYTSR="
+    set "@PYTSR-T=str"
+
+    :LABEL_PYTSVstr.__mod__0
+        if %@PYTSRTEMP_STR%*==* (goto LABEL_PYTSVstr.__mod__1)
+        set "@PYTSRTEMP_CHAR=%@PYTSRTEMP_STR:~0,1%" ::Get the first character
+        set "@PYTSRTEMP_STR=%@PYTSRTEMP_STR:~1%" ::Remove the first character
+
+        if %@PYTSRTEMP_LAST_CHAR%*==%%* (
+            if %@PYTSRTEMP_CHAR%*==s* (
+                set "@PYTSR=%@PYTSR%%@PYTSRTEMP_REPLACEMENT%"
+            ) else (
+                set "@PYTSR=%@PYTSR%%@PYTSRTEMP_CHAR%"
+            )
+            set "@PYTSRTEMP_LAST_CHAR="
+        ) else (
+            if NOT %@PYTSRTEMP_CHAR%*==%%* (
+                set "@PYTSR=%@PYTSR%%@PYTSRTEMP_CHAR%"
+            )
+            set "@PYTSRTEMP_LAST_CHAR=%@PYTSRTEMP_CHAR%"
+        )
+    goto LABEL_PYTSVstr.__mod__0
+
+    :LABEL_PYTSVstr.__mod__1
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
 :PYTSVint.__add__
 set /a "@PYTSR=%1 + %2"
 echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
