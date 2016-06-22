@@ -242,7 +242,7 @@ class CommandGenerator(object):
         lines = []
 
         if not isinstance(afunction, Function):
-            afunction = Function(function)
+            afunction = Function(afunction)
         arguments = ' '.join(args)
 
         lines.append("call %s %s" % (afunction.id_, arguments))
