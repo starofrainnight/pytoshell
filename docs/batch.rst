@@ -97,3 +97,12 @@ Internal Functions
 eval
 `````````````````````
 Emulated by inserting codes into a batch script then call it.
+
+Feature Supported
+=====================
+
+* print()
+
+ Only support basic syntax : print("a string with %s" % variant)
+
+* len()

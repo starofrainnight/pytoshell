@@ -1,5 +1,24 @@
 :: The basic library included all routines that needs by pytoshell
 
+:PYTSVlen
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+call :PYTSV%@PYTSR-T%.__len__ %1
+exit /b %ERRORLEVEL%
+
+:PYTSVstr.__len__
+echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+set "@PYTSR=0"
+set "@PYTSR-T=int"
+
+:LABEL_PYTSVstr.__len__0
+    if %@PYTSRTEMP_VALUE%*==* (goto :LABEL_PYTSVstr.__len__1)
+    set /a "@PYTSR +=1"
+    set "@PYTSRTEMP_VALUE=%@PYTSRTEMP_VALUE:~1%" ::Remove the first character
+goto LABEL_PYTSVstr.__len__0
+
+:LABEL_PYTSVstr.__len__1
+exit /b %ERRORLEVEL%
+
 :PYTSVstr.__add__
 echo set "@PYTSR=%%%1%%%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
 echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT

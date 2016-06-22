@@ -335,7 +335,8 @@ class Translator(base.Translator):
 
         source = Source(self._cg)
 
-        batch_function = Function(node.func.id)
+        function_name = node.func.id
+        batch_function = Function(function_name)
 
         arguments = []
         for argument in node.args:
@@ -346,7 +347,8 @@ class Translator(base.Translator):
 
             arguments.append(temp_variant.id_)
 
-        source.add_initialize(self._cg.invoke(node.func.id, *arguments))
+        source.add_initialize(self._cg.invoke(batch_function.name, *arguments))
+
         return source
 
     def _parse_value(self, value, variant=None):
