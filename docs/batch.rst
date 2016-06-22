@@ -103,6 +103,6 @@ Feature Supported
 
 * print()
 
- Only support basic syntax : print("a string with %s" % variant)
+ Only support basic syntax within only one argument : print("a string with %s" % variant)
 
 * len()

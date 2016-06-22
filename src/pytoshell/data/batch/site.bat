@@ -5,6 +5,11 @@ echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
 call :PYTSV%@PYTSR-T%.__len__ %1
 exit /b %ERRORLEVEL%
 
+:PYTSVprint
+echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+if NOT %@PYTSRTEMP_VALUE%*==* (echo %@PYTSRTEMP_VALUE%)
+exit /b %ERRORLEVEL%
+
 :PYTSVstr.__len__
 echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
 set "@PYTSR=0"
