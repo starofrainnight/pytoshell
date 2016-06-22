@@ -339,20 +339,21 @@ class Translator(base.Translator):
 
         arguments = []
         for argument in node.args:
-            sub_source = self._parse_value(argument)
+            temp_variant = source.create_temp_varaint()
+
+            sub_source = self._parse_value(argument, temp_variant)
             source.append(sub_source)
 
-            temp_variant = source.create_temp_varaint()
-            source.add_initialize(self._cg.set_variant(temp_variant, self._ret_variant))
             arguments.append(temp_variant.id_)
 
         source.add_initialize(self._cg.invoke(node.func.id, *arguments))
         return source
 
-    def _parse_value(self, value):
+    def _parse_value(self, value, variant=None):
         source = Source(self._cg)
 
-        variant = self._ret_variant
+        if variant is None:
+            variant = self._ret_variant
 
         if type(value) == ast.Num:
             source.add_initialize(self._cg.set_variant(variant, value.n))
@@ -373,17 +374,13 @@ class Translator(base.Translator):
             source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
         elif type(value) == ast.BinOp:
 
-            left_source = self._parse_value(value.left)
-            source.append(left_source)
             left_temp_variant = source.create_temp_varaint()
-            source.add_initialize(self._cg.set_variant(
-                left_temp_variant, self._ret_variant))
+            left_source = self._parse_value(value.left, left_temp_variant)
+            source.append(left_source)
 
-            right_source = self._parse_value(value.right)
-            source.append(right_source)
             right_temp_variant = source.create_temp_varaint()
-            source.add_initialize(self._cg.set_variant(
-                right_temp_variant, self._ret_variant))
+            right_source = self._parse_value(value.right, right_temp_variant)
+            source.append(right_source)
 
             operators = {
                 ast.Add:["+", "__add__"],
