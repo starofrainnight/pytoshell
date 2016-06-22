@@ -215,7 +215,7 @@ class CommandGenerator(object):
     @classmethod
     def if_equal(cls, text0, text1, if_block, else_block):
         lines = []
-        lines.append("if %s*==%s* (" % (text0, text1))
+        lines.append("if \"%s\"==\"%s\" (" % (text0, text1))
         if isinstance(if_block, six.string_types):
             lines.append(if_block)
         else:

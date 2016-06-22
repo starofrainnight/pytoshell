@@ -12,7 +12,7 @@ exit /b %ERRORLEVEL%
 
 :PYTSVprint
 echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
-if NOT %@PYTSRTEMP_VALUE%*==* (echo %@PYTSRTEMP_VALUE%)
+if NOT "%@PYTSRTEMP_VALUE%"=="" (echo %@PYTSRTEMP_VALUE%)
 exit /b %ERRORLEVEL%
 
 :PYTSVstr.__len__
@@ -21,7 +21,7 @@ set "@PYTSR=0"
 set "@PYTSR-T=int"
 
 :LABEL_PYTSVstr.__len__0
-    if %@PYTSRTEMP_VALUE%*==* (goto :LABEL_PYTSVstr.__len__1)
+    if "%@PYTSRTEMP_VALUE%"=="" (goto :LABEL_PYTSVstr.__len__1)
     set /a "@PYTSR +=1"
     set "@PYTSRTEMP_VALUE=%@PYTSRTEMP_VALUE:~1%" ::Remove the first character
 goto LABEL_PYTSVstr.__len__0
@@ -62,19 +62,19 @@ setlocal
     set "@PYTSR-T=str"
 
     :LABEL_PYTSVstr.__mod__0
-        if %@PYTSRTEMP_STR%*==* (goto LABEL_PYTSVstr.__mod__1)
+        if "%@PYTSRTEMP_STR%"=="" (goto LABEL_PYTSVstr.__mod__1)
         set "@PYTSRTEMP_CHAR=%@PYTSRTEMP_STR:~0,1%" ::Get the first character
         set "@PYTSRTEMP_STR=%@PYTSRTEMP_STR:~1%" ::Remove the first character
-
-        if %@PYTSRTEMP_LAST_CHAR%*==%%* (
-            if %@PYTSRTEMP_CHAR%*==s* (
-                set "@PYTSR=%@PYTSR%%@PYTSRTEMP_REPLACEMENT%"
+        if "%@PYTSRTEMP_LAST_CHAR%"=="%%" (
+            if "%@PYTSRTEMP_CHAR%"=="s" (
+                set "@PYTSR=%@PYTSR%%@PYTSRTEMP_REPLACEMENT%%@PYTSRTEMP_STR%"
+                goto LABEL_PYTSVstr.__mod__1
             ) else (
                 set "@PYTSR=%@PYTSR%%@PYTSRTEMP_CHAR%"
             )
             set "@PYTSRTEMP_LAST_CHAR="
         ) else (
-            if NOT %@PYTSRTEMP_CHAR%*==%%* (
+            if NOT "%@PYTSRTEMP_CHAR%"=="%%" (
                 set "@PYTSR=%@PYTSR%%@PYTSRTEMP_CHAR%"
             )
             set "@PYTSRTEMP_LAST_CHAR=%@PYTSRTEMP_CHAR%"
