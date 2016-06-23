@@ -506,6 +506,14 @@ class Translator(base.Translator):
             source.add_initialize(self._cg.goto(label_next_block))
 
             source.add_initialize(label_next_block.id_)
+        elif isinstance(node, ast.Subscript):
+            with source.start_temp_clearup():
+                temp_variant = source.create_temp_varaint()
+                source.append(self._parse_value(node.value, temp_variant))
+                temp_variant2 = source.create_temp_varaint()
+                source.append(self._parse_value(node.slice.value, temp_variant2))
+                source.add_initialize("call :PYTSV%%%s%%.__getitem__ %s" % (
+                    temp_variant.type_info.id_, temp_variant2.id_))
         elif isinstance(node, ast.Module):
             with self._stack, source.start_context():
                 source.append(self._parse_value(node.body))
