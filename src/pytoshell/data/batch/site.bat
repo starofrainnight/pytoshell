@@ -59,9 +59,11 @@ setlocal
 
     :: Clear the return variant first
     set "@PYTSR=" & set "@PYTSR-T="
-    for /f "tokens=1" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_START=%%a"
-    for /f "tokens=2" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_STOP=%%a"
-    for /f "tokens=3" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_STEP=%%a"
+    for /f "tokens=1,2,3" %%a in ("%@PYTSRTEMP_VALUE%") do (
+        set "@PYTSRTEMP_START=%%a"
+        set "@PYTSRTEMP_STOP=%%b"
+        set "@PYTSRTEMP_STEP=%%c"
+    )
 
     set /a "@PYTSR=@PYTSRTEMP_START + @PYTSRTEMP_STEP * @PYTSRTEMP_INDEX"
     set "@PYTSR-T=int"
@@ -74,9 +76,11 @@ setlocal
 
     :: Clear the return variant first
     set "@PYTSR=" & set "@PYTSR-T="
-    for /f "tokens=1" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_START=%%a"
-    for /f "tokens=2" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_STOP=%%a"
-    for /f "tokens=3" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_STEP=%%a"
+    for /f "tokens=1,2,3" %%a in ("%@PYTSRTEMP_VALUE%") do (
+        set "@PYTSRTEMP_START=%%a"
+        set "@PYTSRTEMP_STOP=%%b"
+        set "@PYTSRTEMP_STEP=%%c"
+    )
 
     set /a "@PYTSR=(@PYTSRTEMP_STOP - @PYTSRTEMP_START) / @PYTSRTEMP_STEP"
     set "@PYTSR-T=int"
