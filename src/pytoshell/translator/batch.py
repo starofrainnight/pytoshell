@@ -444,6 +444,12 @@ class Translator(base.Translator):
             source.add_initialize(self._cg.set_variant(Variant(name.id), value.s, "str"))
         elif isinstance(value, ast.Name):
             source.add_initialize(self._cg.set_variant(Variant(name.id), Variant(value.id)))
+        elif isinstance(value, ast.NameConstant):
+            constants_table = {
+                True:1,
+                False:0,
+            }
+            source.add_initialize(self._cg.set_variant(Variant(name.id), constants_table[value.value], "bool"))
         else:
             sub_source = self._parse_value(value)
             source.append(sub_source)
