@@ -45,6 +45,7 @@ Only support basic types:
 * bool
 * int
 * str
+* range
 * float
 * dict
 * list

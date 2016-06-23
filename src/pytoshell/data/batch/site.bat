@@ -33,6 +33,20 @@ echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 if NOT "%@PYTSRTEMP_VALUE%"=="" (echo %@PYTSRTEMP_VALUE%)
 exit /b %ERRORLEVEL%
 
+:PYTSVrange
+setlocal
+    set "@PYTSRTEMP_START=0"
+    set "@PYTSRTEMP_STOP=0"
+    set "@PYTSRTEMP_STEP=1"
+    if NOT "%1"=="" echo set "@PYTSRTEMP_START=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+    if NOT "%2"=="" echo set "@PYTSRTEMP_STOP=%%%2%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+    if NOT "%3"=="" echo set "@PYTSRTEMP_STEP=%%%3%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+
+    set "@PYTSR=%@PYTSRTEMP_START% %@PYTSRTEMP_STOP% %@PYTSRTEMP_STEP%"
+    set "@PYTSR-T=range"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
 :PYTSVstr.__bool__
 setlocal
     echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
