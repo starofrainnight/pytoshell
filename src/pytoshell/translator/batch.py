@@ -540,7 +540,7 @@ class Translator(base.Translator):
             lines += source.front
             lines += source.back
 
-            lines.append("del /q/s __PYTSTEMP_EXEC.BAT > NUL")
+            lines.append("if exist __PYTSTEMP_EXEC.BAT del /q/s __PYTSTEMP_EXEC.BAT > NUL")
             lines.append(self._cg.raw_return_("%ERRORLEVEL%"))
 
             for sub_source in source.definitions:
