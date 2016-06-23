@@ -2,40 +2,40 @@
 
 :PYTSVtuple.__getitem__
 setlocal
-    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
-    echo set "@PYTSRTEMP_INDEX=%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+    echo set "@PYTSRTEMP_INDEX=%%%2%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
     :: Clear the return variant first
     set "@PYTSR=" & set "@PYTSR-T="
     for /f "tokens=%@PYTSRTEMP_INDEX%" %%a in (%@PYTSRTEMP_VALUE%) do (
-        echo set "@PYTSR=%%%%a%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
-        echo set "@PYTSR-T=%%%%a-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+        echo set "@PYTSR=%%%%a%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+        echo set "@PYTSR-T=%%%%a-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
     )
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
 :PYTSVlen
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 call :PYTSV%@PYTSR-T%.__len__ %1
 exit /b %ERRORLEVEL%
 
 :PYTSVstr
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 call :PYTSV%@PYTSR-T%.__str__ %1
 exit /b %ERRORLEVEL%
 
 :PYTSVbool
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 call :PYTSV%@PYTSR-T%.__bool__ %1
 exit /b %ERRORLEVEL%
 
 :PYTSVprint
-echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 if NOT "%@PYTSRTEMP_VALUE%"=="" (echo %@PYTSRTEMP_VALUE%)
 exit /b %ERRORLEVEL%
 
 :PYTSVstr.__bool__
 setlocal
-    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
     set "@PYTSR=1"
     if "%@PYTSRTEMP_VALUE%"=="" set "@PYTSR=0"
     set "@PYTSR-T=bool"
@@ -43,7 +43,7 @@ endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
 :PYTSVstr.__len__
-echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 set "@PYTSR=0"
 set "@PYTSR-T=int"
 
@@ -57,16 +57,16 @@ goto LABEL_PYTSVstr.__len__0
 exit /b %ERRORLEVEL%
 
 :PYTSVstr.__add__
-echo set "@PYTSR=%%%1%%%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR=%%%1%%%%%2%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVstr.__mul__
 setlocal
     set "@PYTSR="
-    echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
-    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
-    echo set "@PYTSRTEMP_I=%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+    echo set "@PYTSRTEMP_I=%%%2%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 
     :LABEL_PYTSVstr.__mul__0
         if %@PYTSRTEMP_I% LEQ 0 (goto LABEL_PYTSVstr.__mul__1)
@@ -81,16 +81,16 @@ exit /b %ERRORLEVEL%
 REM String formating
 :PYTSVstr.__mod__
 setlocal
-    echo set "@PYTSRTEMP_RIGHT_T=%%%2-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    echo set "@PYTSRTEMP_RIGHT_T=%%%2-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
     if "%@PYTSRTEMP_RIGHT_T%"=="tuple" (
         goto LABEL_PYTSVstr.__mod__parse_tuple
     )
     goto LABEL_PYTSVstr.__mod__normal
 
     :LABEL_PYTSVstr.__mod__parse_tuple
-        echo set "@PYTSRTEMP_STR=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
-        echo set "@PYTSRTEMP_STR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
-        echo set "@PYTSRTEMP_RIGHT_STR=%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+        echo set "@PYTSRTEMP_STR=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+        echo set "@PYTSRTEMP_STR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+        echo set "@PYTSRTEMP_RIGHT_STR=%%%2%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
         set /a "@PYTSRTEMP_I=0"
         :LABEL_PYTSVstr.__mod__parse_tuple0
             set /a "@PYTSRTEMP_I+=1"
@@ -105,8 +105,8 @@ setlocal
     goto LABEL_PYTSVstr.__mod__exit
 
     :LABEL_PYTSVstr.__mod__normal
-    echo set "@PYTSRTEMP_STR=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
-    echo set "@PYTSRTEMP_REPLACEMENT=%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    echo set "@PYTSRTEMP_STR=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+    echo set "@PYTSRTEMP_REPLACEMENT=%%%2%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
     set "@PYTSRTEMP_CHAR="
     set "@PYTSRTEMP_LAST_CHAR="
     set "@PYTSR="
@@ -138,7 +138,7 @@ exit /b %ERRORLEVEL%
 
 :PYTSVint.__bool__
 setlocal
-    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
     set "@PYTSR=1"
     if %@PYTSRTEMP_VALUE% EQU 0 set "@PYTSR=0"
     set "@PYTSR-T=bool"
@@ -147,53 +147,53 @@ exit /b %ERRORLEVEL%
 
 :PYTSVint.__add__
 set /a "@PYTSR=%1 + %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVint.__sub__
 set /a "@PYTSR=%1 - %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVint.__mul__
-echo set "@PYTSR-T=%%%2-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%2-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 if %@PYTSR-T%*==str* (call :PYTSVstr.__mul__ %2 %1 & exit /b %ERRORLEVEL%)
 
 set /a "@PYTSR=%1 * %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVint.__truediv__
 set /a "@PYTSR=%1 / %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVint.__mod__
 set /a "@PYTSR=%1 %% %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVint.__lshift__
 set /a "@PYTSR=%1 << %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVint.__rshift__
 set /a "@PYTSR=%1 >> %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVint.__or__
 set /a "@PYTSR=%1 | %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVint.__and__
 set /a "@PYTSR=%1 & %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
 
 :PYTSVint.__xor__
 set /a "@PYTSR=%1 ^ %2"
-echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
 exit /b %ERRORLEVEL%
