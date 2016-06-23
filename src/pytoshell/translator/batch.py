@@ -132,7 +132,7 @@ class CommandGenerator(object):
             alist += value
 
     @classmethod
-    def set_variant(cls, name, value, is_raw=False):
+    def set_variant(cls, name, value, type_="str", is_raw=False):
         variant = None
         if isinstance(name, Variant):
             variant = name
@@ -152,7 +152,7 @@ class CommandGenerator(object):
             value_value = value
             if isinstance(value_value, six.string_types):
                 value_value = value_value.replace("%", "%%")
-            value_type_info_value = type(value).__name__
+            value_type_info_value = type_
 
         command = 'set "%s=%s"' % (variant_id, value_value)
         if not variant is None:
@@ -368,11 +368,21 @@ class Translator(base.Translator):
             variant = self._ret_variant
 
         if type(value) == ast.Num:
-            source.add_initialize(self._cg.set_variant(variant, value.n))
+            source.add_initialize(self._cg.set_variant(variant, value.n, "int"))
         elif type(value) == ast.Str:
-            source.add_initialize(self._cg.set_variant(variant, value.s))
+            source.add_initialize(self._cg.set_variant(variant, value.s, "str"))
         elif type(value) == ast.Name:
             source.add_initialize(self._cg.set_variant(variant, Variant(value.id)))
+        elif type(value) == ast.Tuple:
+            elements = []
+            for new_value in value.elts:
+                temp_variant = source.create_temp_varaint()
+                sub_source = self._parse_value(new_value, temp_variant)
+                source.append(sub_source)
+                elements.append(temp_variant.id_)
+
+            source.add_initialize(self._cg.set_variant(
+                variant, '"%s"' %" ".join(elements), "tuple"))
         elif type(value) == ast.Call:
             sub_source = self._gen_call(value)
             source.append(sub_source)
@@ -429,9 +439,9 @@ class Translator(base.Translator):
         source = Source(self._cg)
 
         if type(value) == ast.Num:
-            source.add_initialize(self._cg.set_variant(Variant(name.id), value.n))
+            source.add_initialize(self._cg.set_variant(Variant(name.id), value.n, "int"))
         elif type(value) == ast.Str:
-            source.add_initialize(self._cg.set_variant(Variant(name.id), value.s))
+            source.add_initialize(self._cg.set_variant(Variant(name.id), value.s, "str"))
         elif type(value) == ast.Name:
             source.add_initialize(self._cg.set_variant(Variant(name.id), Variant(value.id)))
         else:

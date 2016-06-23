@@ -1,5 +1,18 @@
 :: The basic library included all routines that needs by pytoshell
 
+:PYTSVtuple.__getitem__
+setlocal
+    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    echo set "@PYTSRTEMP_INDEX=%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    :: Clear the return variant first
+    set "@PYTSR=" & set "@PYTSR-T="
+    for /f "tokens=%@PYTSRTEMP_INDEX%" %%a in (%@PYTSRTEMP_VALUE%) do (
+        echo set "@PYTSR=%%%%a%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+        echo set "@PYTSR-T=%%%%a-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    )
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
 :PYTSVlen
 echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
 call :PYTSV%@PYTSR-T%.__len__ %1
@@ -54,6 +67,30 @@ exit /b %ERRORLEVEL%
 REM String formating
 :PYTSVstr.__mod__
 setlocal
+    echo set "@PYTSRTEMP_RIGHT_T=%%%2-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    if "%@PYTSRTEMP_RIGHT_T%"=="tuple" (
+        goto LABEL_PYTSVstr.__mod__parse_tuple
+    )
+    goto LABEL_PYTSVstr.__mod__normal
+
+    :LABEL_PYTSVstr.__mod__parse_tuple
+        echo set "@PYTSRTEMP_STR=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+        echo set "@PYTSRTEMP_STR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+        echo set "@PYTSRTEMP_RIGHT_STR=%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+        set /a "@PYTSRTEMP_I=0"
+        :LABEL_PYTSVstr.__mod__parse_tuple0
+            set /a "@PYTSRTEMP_I+=1"
+            call :PYTSVtuple.__getitem__ @PYTSRTEMP_RIGHT_STR @PYTSRTEMP_I
+            if "%@PYTSR%"=="" goto LABEL_PYTSVstr.__mod__parse_tuple1
+            call :PYTSVstr.__mod__ @PYTSRTEMP_STR @PYTSR
+            set "@PYTSRTEMP_STR=%@PYTSR%" & set "@PYTSRTEMP_STR-T=%@PYTSR-T%"
+        goto LABEL_PYTSVstr.__mod__parse_tuple0
+
+        :LABEL_PYTSVstr.__mod__parse_tuple1
+        set "@PYTSR=%@PYTSRTEMP_STR%" & set "@PYTSR-T=%@PYTSRTEMP_STR-T%"
+    goto LABEL_PYTSVstr.__mod__exit
+
+    :LABEL_PYTSVstr.__mod__normal
     echo set "@PYTSRTEMP_STR=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
     echo set "@PYTSRTEMP_REPLACEMENT=%%%2%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
     set "@PYTSRTEMP_CHAR="
@@ -62,13 +99,13 @@ setlocal
     set "@PYTSR-T=str"
 
     :LABEL_PYTSVstr.__mod__0
-        if "%@PYTSRTEMP_STR%"=="" (goto LABEL_PYTSVstr.__mod__1)
+        if "%@PYTSRTEMP_STR%"=="" (goto LABEL_PYTSVstr.__mod__exit)
         set "@PYTSRTEMP_CHAR=%@PYTSRTEMP_STR:~0,1%" ::Get the first character
         set "@PYTSRTEMP_STR=%@PYTSRTEMP_STR:~1%" ::Remove the first character
         if "%@PYTSRTEMP_LAST_CHAR%"=="%%" (
             if "%@PYTSRTEMP_CHAR%"=="s" (
                 set "@PYTSR=%@PYTSR%%@PYTSRTEMP_REPLACEMENT%%@PYTSRTEMP_STR%"
-                goto LABEL_PYTSVstr.__mod__1
+                goto LABEL_PYTSVstr.__mod__exit
             ) else (
                 set "@PYTSR=%@PYTSR%%@PYTSRTEMP_CHAR%"
             )
@@ -81,7 +118,7 @@ setlocal
         )
     goto LABEL_PYTSVstr.__mod__0
 
-    :LABEL_PYTSVstr.__mod__1
+    :LABEL_PYTSVstr.__mod__exit
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
