@@ -23,6 +23,7 @@ class Object(object):
     TAG_INTERNAL = "PYTSI"
     TAG_RAW = "PYTSA"
     TAG_RET = "PYTSR"
+    TAG_LABEL = "PYTSL"
 
     def __init__(self, name, tag):
         self._name = str(name)
@@ -77,6 +78,14 @@ class Function(Object):
     def id_(self):
         return ":" + super().id_
 
+class Label(Object):
+    def __init__(self, name, tag=Object.TAG_LABEL):
+        super().__init__(name, tag)
+
+    @property
+    def id_(self):
+        return ":" + super().id_
+
 class Variant(Object):
     def __init__(self, name, tag=Object.TAG_NORMAL):
         super().__init__(name, tag)
@@ -123,6 +132,9 @@ class CommandGenerator(object):
 
     def _new_raw_variant(self):
         return Variant(self._new_variant_id(), Object.TAG_RAW)
+
+    def _new_label(self):
+        return Label(self._new_variant_id())
 
     @classmethod
     def _list_safe_append(cls, alist, value):
@@ -289,6 +301,12 @@ class Source(object):
         self.front += self.temp_finalize
         self.temp_finalize.clear()
 
+    def _jump_block_enter(self):
+        pass
+
+    def _jump_block_exit(self, exc_type, exc_val, exc_tb):
+        pass
+
     def _context_enter(self):
         self.add_initialize(self._cg.begin_context())
         self._temp_clearup_enter()
@@ -432,28 +450,13 @@ class Translator(base.Translator):
                 sub_source = self._parse_value(value.value)
                 source.append(sub_source)
             source.add_initialize(self._cg.return_())
-
-        return source
-
-    def _parse_assign(self, name, value):
-        source = Source(self._cg)
-
-        if isinstance(value, ast.Num):
-            source.add_initialize(self._cg.set_variant(Variant(name.id), value.n, "int"))
-        elif isinstance(value, ast.Str):
-            source.add_initialize(self._cg.set_variant(Variant(name.id), value.s, "str"))
-        elif isinstance(value, ast.Name):
-            source.add_initialize(self._cg.set_variant(Variant(name.id), Variant(value.id)))
         elif isinstance(value, ast.NameConstant):
             constants_table = {
                 True:1,
                 False:0,
             }
-            source.add_initialize(self._cg.set_variant(Variant(name.id), constants_table[value.value], "bool"))
-        else:
-            sub_source = self._parse_value(value)
-            source.append(sub_source)
-            source.add_initialize(self._cg.set_variant(Variant(name.id), self._ret_variant))
+            source.add_initialize(self._cg.set_variant(
+                variant, constants_table[value.value], "bool"))
 
         return source
 
@@ -464,13 +467,13 @@ class Translator(base.Translator):
             atarget = node.targets[0]
             with source.start_temp_clearup():
                 if isinstance(atarget, ast.Name):
-                    sub_source = self._parse_assign(atarget, node.value)
+                    sub_source = self._parse_value(node.value, Variant(atarget.id))
                     source.append(sub_source)
                 elif isinstance(atarget, ast.Tuple):
                     for i in range(len(atarget.elts)):
                         avariable = atarget.elts[i]
                         value = node.value.elts[i]
-                        sub_source = self._parse_assign(avariable, value)
+                        sub_source = self._parse_value(value, Variant(avariable.id))
                         source.append(sub_source)
         elif isinstance(node, ast.Expr):
             with source.start_temp_clearup():

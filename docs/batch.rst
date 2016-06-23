@@ -24,6 +24,7 @@ Prefixs
 * @PYTSV, Normal Variants
 * @PYTSI, Internal Variants
 * @PYTSA, Raw Variants (Contained values without type)
+* @PYTSL, Labels
 
 Name
 ---------------------
@@ -109,4 +110,4 @@ Feature Supported
 
 * string formatting
 
- Only support "%s" 
+ Only support "%s"
