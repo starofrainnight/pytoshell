@@ -23,9 +23,23 @@ echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
 call :PYTSV%@PYTSR-T%.__str__ %1
 exit /b %ERRORLEVEL%
 
+:PYTSVbool
+echo set "@PYTSR-T=%%%1-T%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+call :PYTSV%@PYTSR-T%.__bool__ %1
+exit /b %ERRORLEVEL%
+
 :PYTSVprint
 echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
 if NOT "%@PYTSRTEMP_VALUE%"=="" (echo %@PYTSRTEMP_VALUE%)
+exit /b %ERRORLEVEL%
+
+:PYTSVstr.__bool__
+setlocal
+    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    set "@PYTSR=1"
+    if "%@PYTSRTEMP_VALUE%"=="" set "@PYTSR=0"
+    set "@PYTSR-T=bool"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
 :PYTSVstr.__len__
@@ -119,6 +133,15 @@ setlocal
     goto LABEL_PYTSVstr.__mod__0
 
     :LABEL_PYTSVstr.__mod__exit
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
+:PYTSVint.__bool__
+setlocal
+    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTEMP_EXEC.BAT & call __PYTSTEMP_EXEC.BAT
+    set "@PYTSR=1"
+    if %@PYTSRTEMP_VALUE% EQU 0 set "@PYTSR=0"
+    set "@PYTSR-T=bool"
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 

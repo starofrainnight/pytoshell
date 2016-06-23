@@ -241,6 +241,14 @@ class CommandGenerator(object):
         return lines
 
     @classmethod
+    def goto(cls, label):
+        return "goto %s" % label.id_
+
+    @classmethod
+    def bool_(cls, variant):
+        return "call :PYTSVbool %s" % (variant.id_)
+
+    @classmethod
     def get_type(cls, varaint):
         lines = []
         lines.append(cls.unset_variant(RetVariant()))
@@ -478,7 +486,29 @@ class Translator(base.Translator):
                 sub_source = self._parse_value(node)
                 source.append(sub_source)
         elif isinstance(node, ast.If):
-            pass
+            label_true_block = self._cg._new_label()
+            label_false_block = self._cg._new_label()
+            label_next_block = self._cg._new_label()
+            temp_variant = source.create_temp_varaint()
+            sub_source = self._parse_value(node.test, temp_variant)
+            source.append(sub_source)
+            source.add_initialize(self._cg.bool_(temp_variant))
+            source.add_initialize(self._cg.if_equal(
+                RetVariant().value, "0",
+                self._cg.goto(label_false_block),
+                self._cg.goto(label_true_block)))
+            source.add_initialize(label_true_block.id_)
+            source.append(self._parse_value(node.body))
+            source.add_initialize(self._cg.goto(label_next_block))
+
+            source.add_initialize(label_false_block.id_)
+            source.append(self._parse_value(node.orelse))
+            source.add_initialize(self._cg.goto(label_next_block))
+
+            source.add_initialize(label_next_block.id_)
+        elif isinstance(node, list):
+            for sub_node in node:
+                source.append(self._parse_node(sub_node))
 
         return source
 
