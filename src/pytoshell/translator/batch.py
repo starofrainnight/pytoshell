@@ -506,20 +506,12 @@ class Translator(base.Translator):
             source.add_initialize(self._cg.goto(label_next_block))
 
             source.add_initialize(label_next_block.id_)
+        elif isinstance(node, ast.Module):
+            with self._stack, source.start_context():
+                source.append(self._parse_value(node.body))
         elif isinstance(node, list):
             for sub_node in node:
-                source.append(self._parse_node(sub_node))
-
-        return source
-
-    def _parse_node(self, node):
-        source = Source(self._cg)
-        source.append(self._parse_value(node))
-
-        if "body" in node.__dict__:
-            with self._stack, source.start_context():
-                for sub_node in node.body:
-                    source.append(self._parse_node(sub_node))
+                source.append(self._parse_value(sub_node))
 
         return source
 
@@ -559,7 +551,7 @@ class Translator(base.Translator):
         print(ast.dump(node))
 
         with self._stack:
-            source = self._parse_node(node)
+            source = self._parse_value(node)
             lines = []
             lines.append("@echo off")
             lines += source.front
