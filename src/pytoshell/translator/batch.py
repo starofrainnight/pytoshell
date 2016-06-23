@@ -446,8 +446,8 @@ class Translator(base.Translator):
             source.add_initialize(self._cg.set_variant(Variant(name.id), Variant(value.id)))
         elif isinstance(value, ast.NameConstant):
             constants_table = {
-                True:"True",
-                False:"False",
+                True:1,
+                False:0,
             }
             source.add_initialize(self._cg.set_variant(Variant(name.id), constants_table[value.value], "bool"))
         else:
