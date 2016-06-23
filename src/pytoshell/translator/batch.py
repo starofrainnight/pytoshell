@@ -382,6 +382,7 @@ class Translator(base.Translator):
     def _parse_value(self, value, variant=None):
         source = Source(self._cg)
 
+        node = value
         if variant is None:
             variant = self._ret_variant
 
@@ -457,13 +458,7 @@ class Translator(base.Translator):
             }
             source.add_initialize(self._cg.set_variant(
                 variant, constants_table[value.value], "bool"))
-
-        return source
-
-    def _parse_node(self, node):
-        source = Source(self._cg)
-
-        if isinstance(node, ast.Assign):
+        elif isinstance(node, ast.Assign):
             atarget = node.targets[0]
             with source.start_temp_clearup():
                 if isinstance(atarget, ast.Name):
@@ -484,20 +479,16 @@ class Translator(base.Translator):
                 sub_source = self._parse_value(node)
                 source.append(sub_source)
 
+        return source
+
+    def _parse_node(self, node):
+        source = Source(self._cg)
+        source.append(self._parse_value(node))
+
         if "body" in node.__dict__:
-
-            if isinstance(node, ast.FunctionDef):
-                new_source = self._parse_value(node)
-            else:
-                new_source = source
-
-            with self._stack, new_source.start_context():
+            with self._stack, source.start_context():
                 for sub_node in node.body:
-                    sub_source = self._parse_node(sub_node)
-                    new_source.append(sub_source)
-
-            if new_source != source:
-                source.add_definition(new_source)
+                    source.append(self._parse_node(sub_node))
 
         return source
 
