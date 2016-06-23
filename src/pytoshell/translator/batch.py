@@ -412,6 +412,8 @@ class Translator(base.Translator):
         elif isinstance(node, ast.Call):
             sub_source = self._gen_call(node)
             source.append(sub_source)
+            if variant.tag != Object.TAG_RET:
+                source.add_initialize(self._cg.set_variant(variant, RetVariant()))
         elif isinstance(node, ast.FunctionDef):
             source.add_initialize("") # Add a new line before function definition
             source.add_initialize(Function(node.name).id_)
@@ -514,6 +516,9 @@ class Translator(base.Translator):
                 source.append(self._parse_value(node.slice.value, temp_variant2))
                 source.add_initialize("call :PYTSV%%%s%%.__getitem__ %s" % (
                     temp_variant.type_info.id_, temp_variant2.id_))
+                
+            if variant.tag != Object.TAG_RET:
+                source.add_initialize(self._cg.set_variant(variant, self._ret_variant))
         elif isinstance(node, ast.Module):
             with self._stack, source.start_context():
                 source.append(self._parse_value(node.body))

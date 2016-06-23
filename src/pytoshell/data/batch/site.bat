@@ -38,12 +38,33 @@ setlocal
     set "@PYTSRTEMP_START=0"
     set "@PYTSRTEMP_STOP=0"
     set "@PYTSRTEMP_STEP=1"
-    if NOT "%1"=="" echo set "@PYTSRTEMP_START=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
-    if NOT "%2"=="" echo set "@PYTSRTEMP_STOP=%%%2%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
-    if NOT "%3"=="" echo set "@PYTSRTEMP_STEP=%%%3%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+
+    if "%2"=="" (
+        echo set "@PYTSRTEMP_STOP=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+    ) else (
+        echo set "@PYTSRTEMP_START=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+        echo set "@PYTSRTEMP_STOP=%%%2%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+        if NOT "%3"=="" echo set "@PYTSRTEMP_STEP=%%%3%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+    )
 
     set "@PYTSR=%@PYTSRTEMP_START% %@PYTSRTEMP_STOP% %@PYTSRTEMP_STEP%"
     set "@PYTSR-T=range"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
+:PYTSVrange.__getitem__
+setlocal
+    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+    echo set "@PYTSRTEMP_INDEX=%%%2%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+
+    :: Clear the return variant first
+    set "@PYTSR=" & set "@PYTSR-T="
+    for /f "tokens=1" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_START=%%a"
+    for /f "tokens=2" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_STOP=%%a"
+    for /f "tokens=3" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_STEP=%%a"
+
+    set /a "@PYTSR=@PYTSRTEMP_START + @PYTSRTEMP_STEP * @PYTSRTEMP_INDEX"
+    set "@PYTSR-T=int"
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
