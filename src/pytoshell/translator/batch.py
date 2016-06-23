@@ -367,13 +367,13 @@ class Translator(base.Translator):
         if variant is None:
             variant = self._ret_variant
 
-        if type(value) == ast.Num:
+        if isinstance(value, ast.Num):
             source.add_initialize(self._cg.set_variant(variant, value.n, "int"))
-        elif type(value) == ast.Str:
+        elif isinstance(value, ast.Str):
             source.add_initialize(self._cg.set_variant(variant, value.s, "str"))
-        elif type(value) == ast.Name:
+        elif isinstance(value, ast.Name):
             source.add_initialize(self._cg.set_variant(variant, Variant(value.id)))
-        elif type(value) == ast.Tuple:
+        elif isinstance(value, ast.Tuple):
             elements = []
             for new_value in value.elts:
                 temp_variant = source.create_temp_varaint()
@@ -383,10 +383,10 @@ class Translator(base.Translator):
 
             source.add_initialize(self._cg.set_variant(
                 variant, '"%s"' %" ".join(elements), "tuple"))
-        elif type(value) == ast.Call:
+        elif isinstance(value, ast.Call):
             sub_source = self._gen_call(value)
             source.append(sub_source)
-        elif type(value) == ast.FunctionDef:
+        elif isinstance(value, ast.FunctionDef):
             source.add_initialize("") # Add a new line before function definition
             source.add_initialize(Function(value.name).id_)
             for an_arg in value.args.args:
@@ -395,7 +395,7 @@ class Translator(base.Translator):
                     an_arg_variant.id_, an_arg_variant.type_info.id_))
                 source.add_initialize('shift')
             source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
-        elif type(value) == ast.BinOp:
+        elif isinstance(value, ast.BinOp):
 
             left_temp_variant = source.create_temp_varaint()
             left_source = self._parse_value(value.left, left_temp_variant)
@@ -427,7 +427,7 @@ class Translator(base.Translator):
             ))
             if variant.tag != Object.TAG_RET:
                 source.add_initialize(self._cg.set_variant(variant, self._ret_variant))
-        elif type(value) == ast.Return:
+        elif isinstance(value, ast.Return):
             if value.value is not None:
                 sub_source = self._parse_value(value.value)
                 source.append(sub_source)
@@ -438,11 +438,11 @@ class Translator(base.Translator):
     def _parse_assign(self, name, value):
         source = Source(self._cg)
 
-        if type(value) == ast.Num:
+        if isinstance(value, ast.Num):
             source.add_initialize(self._cg.set_variant(Variant(name.id), value.n, "int"))
-        elif type(value) == ast.Str:
+        elif isinstance(value, ast.Str):
             source.add_initialize(self._cg.set_variant(Variant(name.id), value.s, "str"))
-        elif type(value) == ast.Name:
+        elif isinstance(value, ast.Name):
             source.add_initialize(self._cg.set_variant(Variant(name.id), Variant(value.id)))
         else:
             sub_source = self._parse_value(value)
@@ -454,23 +454,23 @@ class Translator(base.Translator):
     def _parse_node(self, node):
         source = Source(self._cg)
 
-        if type(node) == ast.Assign:
+        if isinstance(node, ast.Assign):
             atarget = node.targets[0]
             with source.start_temp_clearup():
-                if type(atarget) == ast.Name:
+                if isinstance(atarget, ast.Name):
                     sub_source = self._parse_assign(atarget, node.value)
                     source.append(sub_source)
-                elif type(atarget) == ast.Tuple:
+                elif isinstance(atarget, ast.Tuple):
                     for i in range(len(atarget.elts)):
                         avariable = atarget.elts[i]
                         value = node.value.elts[i]
                         sub_source = self._parse_assign(avariable, value)
                         source.append(sub_source)
-        elif type(node) == ast.Expr:
+        elif isinstance(node, ast.Expr):
             with source.start_temp_clearup():
                 sub_source = self._parse_value(node.value)
                 source.append(sub_source)
-        elif type(node) == ast.Return:
+        elif isinstance(node, ast.Return):
             with source.start_temp_clearup():
                 sub_source = self._parse_value(node)
                 source.append(sub_source)
