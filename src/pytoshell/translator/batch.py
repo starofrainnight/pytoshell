@@ -514,9 +514,9 @@ class Translator(base.Translator):
                 source.append(self._parse_value(node.value, temp_variant))
                 temp_variant2 = source.create_temp_varaint()
                 source.append(self._parse_value(node.slice.value, temp_variant2))
-                source.add_initialize("call :PYTSV%%%s%%.__getitem__ %s" % (
-                    temp_variant.type_info.id_, temp_variant2.id_))
-                
+                source.add_initialize("call :PYTSV%%%s%%.__getitem__ %s %s" % (
+                    temp_variant.type_info.id_, temp_variant.id_, temp_variant2.id_))
+
             if variant.tag != Object.TAG_RET:
                 source.add_initialize(self._cg.set_variant(variant, self._ret_variant))
         elif isinstance(node, ast.Module):
