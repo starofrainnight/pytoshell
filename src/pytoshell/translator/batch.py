@@ -519,6 +519,33 @@ class Translator(base.Translator):
 
             if variant.tag != Object.TAG_RET:
                 source.add_initialize(self._cg.set_variant(variant, self._ret_variant))
+        elif isinstance(node, ast.For):
+            with source.start_temp_clearup():
+                label_begin_block = self._cg._new_label()
+                label_end_block = self._cg._new_label()
+
+                target_variant = Variant(node.target.id)
+                index_variant = source.create_temp_varaint()
+                iter_variant = source.create_temp_varaint()
+                len_variant = source.create_temp_varaint()
+                source.append(self._parse_value(node.iter, iter_variant))
+
+                source.add_initialize("call :PYTSVlen %s" % (iter_variant.id_))
+                source.add_initialize(self._cg.set_variant(len_variant, self._ret_variant))
+                source.add_initialize(self._cg.set_variant(index_variant, "-1", "int"))
+                source.add_initialize(label_begin_block.id_)
+                source.add_initialize(self._cg.calcuate_expr(
+                    "%s+1" % index_variant.id_, index_variant))
+                source.add_initialize("if %s GEQ %s %s" % (
+                    index_variant.value, len_variant.value,
+                    self._cg.goto(label_end_block)))
+                source.add_initialize("call :PYTSV%%%s%%.__getitem__ %s %s" % (
+                    iter_variant.type_info.id_, iter_variant.id_, index_variant.id_))
+                source.add_initialize(self._cg.set_variant(target_variant, self._ret_variant))
+                source.append(self._parse_value(node.body))
+                source.add_initialize(self._cg.goto(label_begin_block))
+                source.add_initialize(label_end_block.id_)
+
         elif isinstance(node, ast.Module):
             with self._stack, source.start_context():
                 source.append(self._parse_value(node.body))

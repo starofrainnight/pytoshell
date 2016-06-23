@@ -68,6 +68,21 @@ setlocal
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
+:PYTSVrange.__len__
+setlocal
+    echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
+
+    :: Clear the return variant first
+    set "@PYTSR=" & set "@PYTSR-T="
+    for /f "tokens=1" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_START=%%a"
+    for /f "tokens=2" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_STOP=%%a"
+    for /f "tokens=3" %%a in ("%@PYTSRTEMP_VALUE%") do set "@PYTSRTEMP_STEP=%%a"
+
+    set /a "@PYTSR=(@PYTSRTEMP_STOP - @PYTSRTEMP_START) / @PYTSRTEMP_STEP"
+    set "@PYTSR-T=int"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
 :PYTSVstr.__bool__
 setlocal
     echo set "@PYTSRTEMP_VALUE=%%%1%%" > __PYTSTMP.BAT & call __PYTSTMP.BAT
