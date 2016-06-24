@@ -82,7 +82,7 @@ setlocal
         set "@PYTSRTEMP_STEP=%%c"
     )
 
-    set /a "@PYTSR=(@PYTSRTEMP_STOP - @PYTSRTEMP_START) / @PYTSRTEMP_STEP"
+    set /a "@PYTSR=(@PYTSRTEMP_STOP - @PYTSRTEMP_START + @PYTSRTEMP_STEP - 1) / @PYTSRTEMP_STEP"
     set "@PYTSR-T=int"
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
