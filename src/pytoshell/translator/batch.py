@@ -202,7 +202,7 @@ class CommandGenerator(object):
 
     @classmethod
     def begin_context(cls):
-        return "setlocal"
+        return "setlocal EnableDelayedExpansion"
 
     @classmethod
     def end_context(cls):
@@ -565,7 +565,6 @@ class Translator(base.Translator):
             lines += source.front
             lines += source.back
 
-            lines.append("if exist __PYTSTMP.BAT del /q/s __PYTSTMP.BAT > NUL")
             lines.append(self._cg.raw_return_("%ERRORLEVEL%"))
 
             for sub_source in source.definitions:
