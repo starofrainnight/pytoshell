@@ -415,14 +415,17 @@ class Translator(base.Translator):
             if variant.tag != Object.TAG_RET:
                 source.add_initialize(self._cg.set_variant(variant, RetVariant()))
         elif isinstance(node, ast.FunctionDef):
-            source.add_initialize("") # Add a new line before function definition
-            source.add_initialize(Function(node.name).id_)
-            for an_arg in node.args.args:
-                an_arg_variant = Variant(an_arg.arg)
-                source.add_initialize('set "%s=%%%%1%%" & set "%s=%%%%1%%"' % (
-                    an_arg_variant.id_, an_arg_variant.type_info.id_))
-                source.add_initialize('shift')
-            source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
+            sub_source = Source(self._cg)
+            sub_source.add_initialize("") # Add a new line before function definition
+            sub_source.add_initialize(Function(node.name).id_)
+            with sub_source.start_context():
+                for an_arg in node.args.args:
+                    an_arg_variant = Variant(an_arg.arg)
+                    sub_source.add_initialize('set "%s=%%%%1%%" & set "%s=%%%%1%%"' % (
+                        an_arg_variant.id_, an_arg_variant.type_info.id_))
+                    sub_source.add_initialize('shift')
+                sub_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
+            source.add_definition(sub_source)
         elif isinstance(node, ast.BinOp):
 
             left_temp_variant = source.create_temp_varaint()
