@@ -111,7 +111,7 @@ goto LABEL_PYTSVstr.__len__0
 exit /b %ERRORLEVEL%
 
 :PYTSVstr.__add__
-set "@PYTSR=%%%1%%!%2!"
+set "@PYTSR=!%1!!%2!"
 set "@PYTSR-T=!%1-T!"
 exit /b %ERRORLEVEL%
 
