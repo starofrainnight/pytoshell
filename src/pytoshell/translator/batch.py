@@ -592,8 +592,6 @@ class Translator(base.Translator):
         return source
 
     def translate(self, node):
-        print(ast.dump(node))
-
         with self._stack:
             source = self._parse_value(node)
             lines = []

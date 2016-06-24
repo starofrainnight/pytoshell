@@ -25,6 +25,10 @@ class Application(object):
                             help="Bootstrap mode, don't import __init__ module",
                             type=bool,
                             default=False)
+        parser.add_argument("-d", "--dump",
+                            help='Dump AST Tree',
+                            action='store_true',
+                            default=False)
         parser.add_argument("file_path", help="Input file path")
 
         self.__args = parser.parse_args(argv)
@@ -48,7 +52,10 @@ class Application(object):
         translator = translators[self.__args.type]
 
         with io.open(self.__args.file_path) as source_file:
-            script_content = translator.translate(ast.parse(source_file.read()))
+            ast_tree = ast.parse(source_file.read())
+            if self.__args.dump:
+                print("=== AST TREE BEGIN ===\n%s\n=== AST TREE END ===\n" % ast.dump(ast_tree))
+            script_content = translator.translate(ast_tree)
 
         with io.open(self.__args.output, "w") as script_file:
             script_file.write(script_content)
