@@ -23,6 +23,11 @@ set "@PYTSR-T=!%1-T!"
 call :PYTSV%@PYTSR-T%.__str__ %1
 exit /b %ERRORLEVEL%
 
+:PYTSVint
+set "@PYTSR-T=!%1-T!"
+call :PYTSV%@PYTSR-T%.__int__ %1
+exit /b %ERRORLEVEL%
+
 :PYTSVbool
 set "@PYTSR-T=!%1-T!"
 call :PYTSV%@PYTSR-T%.__bool__ %1
@@ -90,7 +95,22 @@ exit /b %ERRORLEVEL%
 :PYTSVbool.__bool__
 setlocal
     set "@PYTSR=!%1!"
-    set "@PYTSR-T=!%1-T!"
+    set "@PYTSR-T=bool"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
+:PYTSVbool.__int__
+setlocal
+    set /a "@PYTSR=!%1!"
+    set "@PYTSR-T=int"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
+:PYTSVbool.__str__
+setlocal
+    set "@PYTSR=!%1!"
+    if %@PYTSR% EQU 0 (set "@PYTSR=False") else (set "@PYTSR=True")
+    set "@PYTSR-T=str"
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
@@ -100,6 +120,20 @@ setlocal
     set "@PYTSR=1"
     if "%@PYTSRTEMP_VALUE%"=="" set "@PYTSR=0"
     set "@PYTSR-T=bool"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
+:PYTSVstr.__int__
+setlocal
+    set /a "@PYTSR=!%1!"
+    set "@PYTSR-T=int"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
+:PYTSVstr.__str__
+setlocal
+    set "@PYTSR=!%1!"
+    set "@PYTSR-T=str"
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
