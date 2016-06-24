@@ -350,6 +350,13 @@ class Stack(list):
         return self[len(self) - 1]
 
     def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.pop()
+
+class NameStack(Stack):
+    def __enter__(self):
         self.push({})
         return self
 
@@ -361,7 +368,8 @@ class Translator(base.Translator):
     _module_dir = os.path.splitext(os.path.basename(__file__))[0]
 
     def __init__(self):
-        self._stack = Stack()
+        self._stack = NameStack()
+        self._break_stack = Stack()
         self._cg = CommandGenerator()
         self._ret_variant = RetVariant()
 
@@ -493,6 +501,9 @@ class Translator(base.Translator):
         elif isinstance(node, ast.Pass):
             # Just pass ...
             pass
+        elif isinstance(node, ast.Break):
+            if len(self._break_stack) > 0:
+                source.add_initialize(self._cg.goto(self._break_stack.top))
         elif isinstance(node, ast.If):
             label_true_block = self._cg._new_label()
             label_false_block = self._cg._new_label()
@@ -526,10 +537,10 @@ class Translator(base.Translator):
             if variant.tag != Object.TAG_RET:
                 source.add_initialize(self._cg.set_variant(variant, self._ret_variant))
         elif isinstance(node, ast.For):
-            with source.start_temp_clearup():
-                label_begin_block = self._cg._new_label()
-                label_end_block = self._cg._new_label()
-
+            label_begin_block = self._cg._new_label()
+            label_end_block = self._cg._new_label()
+            self._break_stack.push(label_end_block)
+            with self._break_stack, source.start_temp_clearup():
                 target_variant = Variant(node.target.id)
                 index_variant = source.create_temp_varaint()
                 iter_variant = source.create_temp_varaint()
@@ -553,10 +564,10 @@ class Translator(base.Translator):
                 source.add_initialize(label_end_block.id_)
 
         elif isinstance(node, ast.While):
-            with source.start_temp_clearup():
-                label_begin_block = self._cg._new_label()
-                label_end_block = self._cg._new_label()
-
+            label_begin_block = self._cg._new_label()
+            label_end_block = self._cg._new_label()
+            self._break_stack.push(label_end_block)
+            with self._break_stack, source.start_temp_clearup():
                 test_variant = source.create_temp_varaint()
                 source.add_initialize(label_begin_block.id_)
                 source.append(self._parse_value(node.test, test_variant))
@@ -565,6 +576,7 @@ class Translator(base.Translator):
                     self._ret_variant.value,
                     self._cg.goto(label_end_block),
                 ))
+                source.append(self._parse_value(node.body))
                 source.add_initialize(self._cg.goto(label_begin_block))
                 source.add_initialize(label_end_block.id_)
 
@@ -574,6 +586,8 @@ class Translator(base.Translator):
         elif isinstance(node, list):
             for sub_node in node:
                 source.append(self._parse_value(sub_node))
+        else:
+            raise KeyError(node)
 
         return source
 
