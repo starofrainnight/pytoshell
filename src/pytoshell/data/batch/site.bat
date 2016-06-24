@@ -202,8 +202,15 @@ setlocal
     :LABEL_PYTSVstr.__mod__normal
     set "@PYTSRTEMP_STR=!%1!"
     set "@PYTSRTEMP_REPLACEMENT=!%2!"
+    set "@PYTSRTEMP_REPLACEMENT-T=!%2-T!"
     set "@PYTSRTEMP_CHAR="
     set "@PYTSRTEMP_LAST_CHAR="
+
+    :: Do str(%2)
+    call :PYTSV%@PYTSRTEMP_REPLACEMENT-T%.__str__ @PYTSRTEMP_REPLACEMENT
+    set "@PYTSRTEMP_REPLACEMENT=%@PYTSR%"
+    set "@PYTSRTEMP_REPLACEMENT-T=%@PYTSR-T%"
+
     set "@PYTSR="
     set "@PYTSR-T=str"
 
