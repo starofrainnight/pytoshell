@@ -247,6 +247,10 @@ setlocal
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
+:PYTSVint.__str__
+set "@PYTSR-T=str"
+exit /b %ERRORLEVEL%
+
 :PYTSVint.__add__
 set /a "@PYTSR=%1 + %2"
 set "@PYTSR-T=!%1-T!"
