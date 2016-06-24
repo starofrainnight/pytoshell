@@ -429,9 +429,10 @@ class Translator(base.Translator):
             with sub_source.start_context():
                 for an_arg in node.args.args:
                     an_arg_variant = Variant(an_arg.arg)
-                    sub_source.add_initialize('set "%s=%%%%1%%" & set "%s=%%%%1%%"' % (
+                    sub_source.add_initialize('set "%s=!%%1!" & set "%s=!%%1-T!"' % (
                         an_arg_variant.id_, an_arg_variant.type_info.id_))
                     sub_source.add_initialize('shift')
+                sub_source.append(self._parse_value(node.body))
                 sub_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
             source.add_definition(sub_source)
         elif isinstance(node, ast.BinOp):
@@ -467,9 +468,10 @@ class Translator(base.Translator):
             if variant.tag != Object.TAG_RET:
                 source.add_initialize(self._cg.set_variant(variant, self._ret_variant))
         elif isinstance(node, ast.Return):
-            if node.value is not None:
-                sub_source = self._parse_value(node.value)
-                source.append(sub_source)
+            with source.start_temp_clearup():
+                if node.value is not None:
+                    sub_source = self._parse_value(node.value)
+                    source.append(sub_source)
             source.add_initialize(self._cg.return_())
         elif isinstance(node, ast.NameConstant):
             constants_table = {
@@ -493,10 +495,6 @@ class Translator(base.Translator):
         elif isinstance(node, ast.Expr):
             with source.start_temp_clearup():
                 sub_source = self._parse_value(node.value)
-                source.append(sub_source)
-        elif isinstance(node, ast.Return):
-            with source.start_temp_clearup():
-                sub_source = self._parse_value(node)
                 source.append(sub_source)
         elif isinstance(node, ast.Pass):
             # Just pass ...
