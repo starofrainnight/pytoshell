@@ -603,9 +603,10 @@ class Translator(base.Translator):
                 lines += sub_source.front
                 lines += sub_source.back
 
-        site_module_file = open(os.path.join(self.get_module_path(), "site.bat"), "r")
-        with site_module_file:
-            for line in site_module_file:
-                lines.append(line.strip())
+        if not self.is_bootstrap:
+            site_module_file = open(os.path.join(self.get_module_path(), "site.bat"), "r")
+            with site_module_file:
+                for line in site_module_file:
+                    lines.append(line.strip())
 
         return "\n".join(lines)

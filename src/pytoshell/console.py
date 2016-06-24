@@ -23,7 +23,7 @@ class Application(object):
         parser.add_argument("-o", "--output", help="Output file path")
         parser.add_argument("-b", "--bootstrap",
                             help="Bootstrap mode, don't import __init__ module",
-                            type=bool,
+                            action='store_true',
                             default=False)
         parser.add_argument("-d", "--dump",
                             help='Dump AST Tree',
@@ -48,6 +48,7 @@ class Application(object):
         for aclass in translator_classes:
             for aext in aclass.file_extensions:
                 translators[aext] = aclass()
+                translators[aext].is_bootstrap = self.__args.bootstrap
 
         translator = translators[self.__args.type]
 
