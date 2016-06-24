@@ -57,6 +57,10 @@ setlocal
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
+:PYTSVoperator.getitem
+call :PYTSV!%1-T!.__getitem__ %1 %2
+exit /b %ERRORLEVEL%
+
 :PYTSVrange.__getitem__
 setlocal
     set "@PYTSRTEMP_VALUE=!%1!"
