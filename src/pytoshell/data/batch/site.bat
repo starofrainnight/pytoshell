@@ -87,6 +87,13 @@ setlocal
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
+:PYTSVbool.__bool__
+setlocal
+    set "@PYTSR=!%1!"
+    set "@PYTSR-T=!%1-T!"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
 :PYTSVstr.__bool__
 setlocal
     set "@PYTSRTEMP_VALUE=!%1!"
