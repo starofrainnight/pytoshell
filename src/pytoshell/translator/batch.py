@@ -490,6 +490,9 @@ class Translator(base.Translator):
             with source.start_temp_clearup():
                 sub_source = self._parse_value(node)
                 source.append(sub_source)
+        elif isinstance(node, ast.Pass):
+            # Just pass ...
+            pass
         elif isinstance(node, ast.If):
             label_true_block = self._cg._new_label()
             label_false_block = self._cg._new_label()
@@ -546,6 +549,22 @@ class Translator(base.Translator):
                     iter_variant.type_info.id_, iter_variant.id_, index_variant.id_))
                 source.add_initialize(self._cg.set_variant(target_variant, self._ret_variant))
                 source.append(self._parse_value(node.body))
+                source.add_initialize(self._cg.goto(label_begin_block))
+                source.add_initialize(label_end_block.id_)
+
+        elif isinstance(node, ast.While):
+            with source.start_temp_clearup():
+                label_begin_block = self._cg._new_label()
+                label_end_block = self._cg._new_label()
+
+                test_variant = source.create_temp_varaint()
+                source.add_initialize(label_begin_block.id_)
+                source.append(self._parse_value(node.test, test_variant))
+                source.add_initialize(self._cg.bool_(test_variant))
+                source.add_initialize("if %s EQU 0 %s" % (
+                    self._ret_variant.value,
+                    self._cg.goto(label_end_block),
+                ))
                 source.add_initialize(self._cg.goto(label_begin_block))
                 source.add_initialize(label_end_block.id_)
 
