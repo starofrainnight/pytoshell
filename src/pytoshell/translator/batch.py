@@ -597,7 +597,7 @@ class Translator(base.Translator):
             for sub_node in node:
                 source.append(self._parse_value(sub_node))
         else:
-            raise KeyError(node)
+            raise NotImplementedError(type(node).__name__)
 
         return source
 
