@@ -118,6 +118,48 @@ setlocal
 endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
 exit /b %ERRORLEVEL%
 
+:PYTSVstr.__getitem__
+setlocal
+    set "@PYTSRTEMP_ARG1=!%1!"
+    set "@PYTSRTEMP_ARG2=!%2!"
+
+    if "!%2-T!" == "slice" (
+        goto LABEL_PYTSVstr.__getitem__0
+    )
+    goto LABEL_PYTSVstr.__getitem__2
+
+    :LABEL_PYTSVstr.__getitem__0
+    for /f "tokens=1,2,3" %%a in ("%@PYTSRTEMP_ARG2%") do (
+        set "@PYTSRTEMP_LOWER=%%a"
+        set "@PYTSRTEMP_UPPER=%%b"
+        set "@PYTSRTEMP_STEP=%%c"
+    )
+
+    set /a "@PYTSRTEMP_COUNT=@PYTSRTEMP_UPPER-@PYTSRTEMP_LOWER"
+
+    if "%@PYTSRTEMP_STEP%" == "1" (
+        set "@PYTSR=!@PYTSRTEMP_ARG1:~%@PYTSRTEMP_LOWER%,%@PYTSRTEMP_COUNT%!"
+        goto LABEL_PYTSVstr.__getitem__EXIT
+    )
+
+    set "@PYTSR="
+
+    :LABEL_PYTSVstr.__getitem__1
+    if %@PYTSRTEMP_LOWER% GEQ %@PYTSRTEMP_UPPER% (goto LABEL_PYTSVstr.__getitem__EXIT)
+
+    set "@PYTSR=%@PYTSR%!@PYTSRTEMP_ARG1:~%@PYTSRTEMP_LOWER%,1!"
+    set /a "@PYTSRTEMP_LOWER += @PYTSRTEMP_STEP"
+    goto LABEL_PYTSVstr.__getitem__1
+
+    :LABEL_PYTSVstr.__getitem__2
+
+    set "@PYTSR=!@PYTSRTEMP_ARG1:~%@PYTSRTEMP_ARG2%,1!"
+
+    :LABEL_PYTSVstr.__getitem__EXIT
+    set "@PYTSR-T=str"
+endlocal & set "@PYTSR=%@PYTSR%" & set "@PYTSR-T=%@PYTSR-T%"
+exit /b %ERRORLEVEL%
+
 :PYTSVstr.__bool__
 setlocal
     set "@PYTSRTEMP_VALUE=!%1!"
