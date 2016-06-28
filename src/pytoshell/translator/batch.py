@@ -602,6 +602,8 @@ class Translator(base.Translator):
             source.add_definition(sub_source)
 
             source.append(self._parse_node(node.body))
+        elif isinstance(node, ast.Attribute):
+            source.append(self._parse_node(node.value))
         else:
             raise NotImplementedError(type(node).__name__)
 
