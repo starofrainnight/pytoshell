@@ -373,7 +373,7 @@ class Translator(base.Translator):
         self._cg = CommandGenerator()
         self._ret_variant = RetVariant()
 
-    def _parse_value(self, node, variant=None):
+    def _parse_node(self, node, variant=None):
         source = Source(self._cg)
 
         if variant is None:
@@ -389,7 +389,7 @@ class Translator(base.Translator):
             elements = []
             for new_value in node.elts:
                 temp_variant = source.create_temp_varaint()
-                sub_source = self._parse_value(new_value, temp_variant)
+                sub_source = self._parse_node(new_value, temp_variant)
                 source.append(sub_source)
                 elements.append(temp_variant.id_)
 
@@ -408,7 +408,7 @@ class Translator(base.Translator):
 
             for argument in node.args:
                 temp_variant = source.create_temp_varaint()
-                sub_source = self._parse_value(argument, temp_variant)
+                sub_source = self._parse_node(argument, temp_variant)
                 source.append(sub_source)
                 arguments.append(temp_variant.id_)
 
@@ -428,17 +428,17 @@ class Translator(base.Translator):
                     sub_source.add_initialize('set "%s=!%%1!" & set "%s=!%%1-T!"' % (
                         an_arg_variant.id_, an_arg_variant.type_info.id_))
                     sub_source.add_initialize('shift')
-                sub_source.append(self._parse_value(node.body))
+                sub_source.append(self._parse_node(node.body))
                 sub_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
             source.add_definition(sub_source)
         elif isinstance(node, ast.BinOp):
 
             left_temp_variant = source.create_temp_varaint()
-            left_source = self._parse_value(node.left, left_temp_variant)
+            left_source = self._parse_node(node.left, left_temp_variant)
             source.append(left_source)
 
             right_temp_variant = source.create_temp_varaint()
-            right_source = self._parse_value(node.right, right_temp_variant)
+            right_source = self._parse_node(node.right, right_temp_variant)
             source.append(right_source)
 
             operators = {
@@ -466,7 +466,7 @@ class Translator(base.Translator):
         elif isinstance(node, ast.Return):
             with source.start_temp_clearup():
                 if node.value is not None:
-                    sub_source = self._parse_value(node.value)
+                    sub_source = self._parse_node(node.value)
                     source.append(sub_source)
             source.add_initialize(self._cg.return_())
         elif isinstance(node, ast.NameConstant):
@@ -480,17 +480,17 @@ class Translator(base.Translator):
             atarget = node.targets[0]
             with source.start_temp_clearup():
                 if isinstance(atarget, ast.Name):
-                    sub_source = self._parse_value(node.value, Variant(atarget.id))
+                    sub_source = self._parse_node(node.value, Variant(atarget.id))
                     source.append(sub_source)
                 elif isinstance(atarget, ast.Tuple):
                     for i in range(len(atarget.elts)):
                         avariable = atarget.elts[i]
                         value = node.value.elts[i]
-                        sub_source = self._parse_value(value, Variant(avariable.id))
+                        sub_source = self._parse_node(value, Variant(avariable.id))
                         source.append(sub_source)
         elif isinstance(node, ast.Expr):
             with source.start_temp_clearup():
-                sub_source = self._parse_value(node.value)
+                sub_source = self._parse_node(node.value)
                 source.append(sub_source)
         elif isinstance(node, ast.Pass):
             # Just pass ...
@@ -503,7 +503,7 @@ class Translator(base.Translator):
             label_false_block = self._cg._new_label()
             label_next_block = self._cg._new_label()
             temp_variant = source.create_temp_varaint()
-            sub_source = self._parse_value(node.test, temp_variant)
+            sub_source = self._parse_node(node.test, temp_variant)
             source.append(sub_source)
             source.add_initialize(self._cg.bool_(temp_variant))
             source.add_initialize(self._cg.if_equal(
@@ -511,16 +511,16 @@ class Translator(base.Translator):
                 self._cg.goto(label_false_block),
                 self._cg.goto(label_true_block)))
             source.add_initialize(label_true_block.id_)
-            source.append(self._parse_value(node.body))
+            source.append(self._parse_node(node.body))
             source.add_initialize(self._cg.goto(label_next_block))
 
             source.add_initialize(label_false_block.id_)
-            source.append(self._parse_value(node.orelse))
+            source.append(self._parse_node(node.orelse))
             source.add_initialize(self._cg.goto(label_next_block))
 
             source.add_initialize(label_next_block.id_)
         elif isinstance(node, ast.Index):
-            source.append(self._parse_value(node.value, variant))
+            source.append(self._parse_node(node.value, variant))
         elif isinstance(node, ast.Slice):
             slice_lower = node.lower.n
             slice_upper = node.upper.n
@@ -534,9 +534,9 @@ class Translator(base.Translator):
         elif isinstance(node, ast.Subscript):
             with source.start_temp_clearup():
                 temp_variant = source.create_temp_varaint()
-                source.append(self._parse_value(node.value, temp_variant))
+                source.append(self._parse_node(node.value, temp_variant))
                 temp_variant2 = source.create_temp_varaint()
-                source.append(self._parse_value(node.slice, temp_variant2))
+                source.append(self._parse_node(node.slice, temp_variant2))
                 source.add_initialize("call :PYTSV%%%s%%.__getitem__ %s %s" % (
                     temp_variant.type_info.id_, temp_variant.id_, temp_variant2.id_))
 
@@ -551,7 +551,7 @@ class Translator(base.Translator):
                 index_variant = source.create_temp_varaint()
                 iter_variant = source.create_temp_varaint()
                 len_variant = source.create_temp_varaint()
-                source.append(self._parse_value(node.iter, iter_variant))
+                source.append(self._parse_node(node.iter, iter_variant))
 
                 source.add_initialize("call :PYTSVlen %s" % (iter_variant.id_))
                 source.add_initialize(self._cg.set_variant(len_variant, self._ret_variant))
@@ -565,7 +565,7 @@ class Translator(base.Translator):
                 source.add_initialize("call :PYTSV%%%s%%.__getitem__ %s %s" % (
                     iter_variant.type_info.id_, iter_variant.id_, index_variant.id_))
                 source.add_initialize(self._cg.set_variant(target_variant, self._ret_variant))
-                source.append(self._parse_value(node.body))
+                source.append(self._parse_node(node.body))
                 source.add_initialize(self._cg.goto(label_begin_block))
                 source.add_initialize(label_end_block.id_)
 
@@ -576,22 +576,22 @@ class Translator(base.Translator):
             with self._break_stack, source.start_temp_clearup():
                 test_variant = source.create_temp_varaint()
                 source.add_initialize(label_begin_block.id_)
-                source.append(self._parse_value(node.test, test_variant))
+                source.append(self._parse_node(node.test, test_variant))
                 source.add_initialize(self._cg.bool_(test_variant))
                 source.add_initialize("if %s EQU 0 %s" % (
                     self._ret_variant.value,
                     self._cg.goto(label_end_block),
                 ))
-                source.append(self._parse_value(node.body))
+                source.append(self._parse_node(node.body))
                 source.add_initialize(self._cg.goto(label_begin_block))
                 source.add_initialize(label_end_block.id_)
 
         elif isinstance(node, ast.Module):
             with self._stack, source.start_context():
-                source.append(self._parse_value(node.body))
+                source.append(self._parse_node(node.body))
         elif isinstance(node, list):
             for sub_node in node:
-                source.append(self._parse_value(sub_node))
+                source.append(self._parse_node(sub_node))
         elif isinstance(node, ast.ClassDef):
             sub_source = Source(self._cg)
             sub_source.add_initialize("") # Add a new line before function definition
@@ -601,7 +601,7 @@ class Translator(base.Translator):
             sub_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
             source.add_definition(sub_source)
 
-            source.append(self._parse_value(node.body))
+            source.append(self._parse_node(node.body))
         else:
             raise NotImplementedError(type(node).__name__)
 
@@ -609,7 +609,7 @@ class Translator(base.Translator):
 
     def translate(self, node):
         with self._stack:
-            source = self._parse_value(node)
+            source = self._parse_node(node)
             lines = []
             lines.append("@echo off")
             lines += source.front
