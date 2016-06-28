@@ -604,9 +604,8 @@ class Translator(base.Translator):
             sub_source.add_initialize("") # Add a new line before function definition
             constructor = Function(node.name)
             sub_source.add_initialize(constructor.id_)
-            with sub_source.start_context():
-                sub_source.add_initialize('call %s.__init__ %%*' % constructor.id_)
-                sub_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
+            sub_source.add_initialize('call %s.__init__ %%*' % constructor.id_)
+            sub_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
             source.add_definition(sub_source)
 
             source.append(self._parse_value(node.body))
