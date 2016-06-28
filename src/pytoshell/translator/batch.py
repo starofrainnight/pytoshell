@@ -593,14 +593,18 @@ class Translator(base.Translator):
             for sub_node in node:
                 source.append(self._parse_node(sub_node))
         elif isinstance(node, ast.ClassDef):
+            constructor = Function(node.name)
+            constructor_variant = Variant(node.name)
+
             sub_source = Source(self._cg)
             sub_source.add_initialize("") # Add a new line before function definition
-            constructor = Function(node.name)
             sub_source.add_initialize(constructor.id_)
             sub_source.add_initialize('call %s.__init__ %%*' % constructor.id_)
             sub_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
             source.add_definition(sub_source)
 
+            source.add_initialize(self._cg.set_variant(
+                constructor_variant, constructor_variant.name, "type"))
             source.append(self._parse_node(node.body))
         elif isinstance(node, ast.Attribute):
             source.append(self._parse_node(node.value))
