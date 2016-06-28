@@ -379,10 +379,16 @@ class Translator(base.Translator):
 
         source = Source(self._cg)
 
-        function_name = node.func.id
+        arguments = []
+
+        if isinstance(node.func, ast.Attribute):
+            object_variant = Variant(node.func.value.id)
+            function_name = "%%%s%%.%s" % (object_variant.type_info.id_.lower(), node.func.attr)
+            arguments.append(object_variant.id_)
+        else:
+            function_name = node.func.id
         batch_function = Function(function_name)
 
-        arguments = []
         for argument in node.args:
             temp_variant = source.create_temp_varaint()
 
