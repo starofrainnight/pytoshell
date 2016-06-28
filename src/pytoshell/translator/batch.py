@@ -399,7 +399,9 @@ class Translator(base.Translator):
             arguments = []
 
             if isinstance(node.func, ast.Attribute):
-                object_variant = Variant(node.func.value.id)
+                temp_variant = source.create_temp_varaint()
+                source.append(self._parse_node(node.func.value, temp_variant))
+                object_variant = temp_variant
                 function_name = "%%%s%%.%s" % (object_variant.type_info.id_.lower(), node.func.attr)
                 arguments.append(object_variant.id_)
             else:
