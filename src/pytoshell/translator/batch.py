@@ -373,34 +373,6 @@ class Translator(base.Translator):
         self._cg = CommandGenerator()
         self._ret_variant = RetVariant()
 
-    def _gen_call(self, node):
-        if not isinstance(node, ast.Call):
-            raise TypeError("node must be type of ast.Call!")
-
-        source = Source(self._cg)
-
-        arguments = []
-
-        if isinstance(node.func, ast.Attribute):
-            object_variant = Variant(node.func.value.id)
-            function_name = "%%%s%%.%s" % (object_variant.type_info.id_.lower(), node.func.attr)
-            arguments.append(object_variant.id_)
-        else:
-            function_name = node.func.id
-        batch_function = Function(function_name)
-
-        for argument in node.args:
-            temp_variant = source.create_temp_varaint()
-
-            sub_source = self._parse_value(argument, temp_variant)
-            source.append(sub_source)
-
-            arguments.append(temp_variant.id_)
-
-        source.add_initialize(self._cg.invoke(batch_function.name, *arguments))
-
-        return source
-
     def _parse_value(self, node, variant=None):
         source = Source(self._cg)
 
@@ -424,8 +396,23 @@ class Translator(base.Translator):
             source.add_initialize(self._cg.set_variant(
                 variant, '"%s"' %" ".join(elements), "tuple"))
         elif isinstance(node, ast.Call):
-            sub_source = self._gen_call(node)
-            source.append(sub_source)
+            arguments = []
+
+            if isinstance(node.func, ast.Attribute):
+                object_variant = Variant(node.func.value.id)
+                function_name = "%%%s%%.%s" % (object_variant.type_info.id_.lower(), node.func.attr)
+                arguments.append(object_variant.id_)
+            else:
+                function_name = node.func.id
+            batch_function = Function(function_name)
+
+            for argument in node.args:
+                temp_variant = source.create_temp_varaint()
+                sub_source = self._parse_value(argument, temp_variant)
+                source.append(sub_source)
+                arguments.append(temp_variant.id_)
+
+            source.add_initialize(self._cg.invoke(batch_function.name, *arguments))
             if variant.tag != Object.TAG_RET:
                 source.add_initialize(self._cg.set_variant(variant, RetVariant()))
         elif isinstance(node, ast.FunctionDef):
