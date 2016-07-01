@@ -48,11 +48,13 @@ class Object(object):
     @classmethod
     def _escape_name(cls, name):
         chars = []
+
+        if name.endswith("-T"):
+            name = name[:-2]
+
         for c in name:
             if c.isupper():
                 chars.append("#")
-            else:
-                c = c.upper()
             chars.append(c)
         return ''.join(chars)
 
@@ -64,9 +66,6 @@ class Object(object):
             if c == "#":
                 i += 1
                 c = name[i].upper()
-            else:
-                c = c.lower()
-
             chars.append(c)
         return "".join(chars)
 
@@ -105,9 +104,9 @@ class Variant(Object):
 class TypeInfoVariant(Variant):
     def __init__(self, name, tag=Object.TAG_NORMAL):
         if name.endswith("-t"):
-            name = "-t"
+            name = "-T"
         else:
-            name += "-t"
+            name += "-T"
         super().__init__(name, tag)
 
 class ArgumentVariant(Variant):
@@ -601,7 +600,12 @@ class Translator(base.Translator):
             sub_source = Source(self._cg)
             sub_source.add_initialize("") # Add a new line before function definition
             sub_source.add_initialize(constructor.id_)
-            sub_source.add_initialize('call %s.__init__ %%*' % constructor.id_)
+            sub_source.add_initialize('call %s.__new__ %s %%*' % (
+                constructor.id_, constructor_variant.id_))
+            sub_source.add_initialize('set "%s=%s"' % (
+                self._ret_variant.type_info.id_, node.name))
+            sub_source.add_initialize('call %s.__init__ %s %%*' % (
+                constructor.id_, self._ret_variant.id_))
             sub_source.add_finalize(self._cg.raw_return_("%ERRORLEVEL%"))
             source.add_definition(sub_source)
 
